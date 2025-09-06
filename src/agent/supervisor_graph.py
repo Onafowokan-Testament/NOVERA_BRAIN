@@ -1,6 +1,7 @@
 from typing import Dict, List, Union
 
 from langchain_core.messages import HumanMessage
+from langgraph.config import get_config
 from langgraph.graph import START, StateGraph
 from langgraph.graph.message import AnyMessage, BaseMessage
 from langgraph.types import Command
@@ -11,7 +12,7 @@ from loguru import logger
 from agent.configuration import NoveraConfig
 from agent.meta_state import AgentState
 from agent.prompt import SYSTEM_PROMPT
-from agent.tools import TOOLS
+from agent.tools import TOOLS, store_user_profile, user_profile_builder
 from agent.utils import load_chat_model
 
 supervisor_name = "NOVERA_SUPERVISOR"
@@ -74,26 +75,24 @@ async def query_preprocessor_hook(
 
 
 async def post_processor_hook(state: AgentState) -> Dict[str, AnyMessage]:
-
     """Processor used after LLM generates result"""
     human_message_indices = map(
-        lambda x : state['messages'].index(x) if isinstance(x,HumanMessage) else -1,
-        state['messages']
+        lambda x: state["messages"].index(x) if isinstance(x, HumanMessage) else -1,
+        state["messages"],
     )
 
     max_index = max(human_message_indices)
-    content= state['messages'][max_index].content[0]
+    content = state["messages"][max_index].content[0]
 
     if not isinstance(content, str):
-        content = content['text']
+        content = content["text"]
         print("=" * 10 + "\n")
         print(content)
         print("=" * 10 + "\n")
 
-
-    if '<context>' not in content and  '</context>' not  in content:
+    if "<context>" not in content and "</context>" not in content:
         return {"messages": state["messages"]}
-    
+
     content = content.split("\n\n<context>")[0]
 
     state["messages"][max_index].content = content
@@ -101,8 +100,27 @@ async def post_processor_hook(state: AgentState) -> Dict[str, AnyMessage]:
     return {"messages": state["messages"]}
 
 
-async def summarization_node(state: AgentState) -> Dict[str, AnyMessage]:
-    pass
+async def summarization_node(state: AgentState):
+    model = load_chat_model(NoveraConfig.model, temperature=0).bind_tools(
+        [user_profile_builder]
+    )
+
+    sys = """You are a text summarizer with a simple task:
+
+Analyze all previous conversations between the user and different AI(s), and extract specific insights into user behavior patterns.
+All extracted insights MUST be concise and actionable for building a comprehensive user profile."""
+
+    msg = model.invoke(state["messages"] + HumanMessage(content=sys))
+
+    logger.info("Summarization message: ", msg)
+
+    if not msg.tool_calls:
+        return state
+
+    response = await store_user_profile(message=msg, config=get_config())
+
+    logger.info(f"respose:{ response}")
+    return state
 
 
 async def structured_ouput_node(state: AgentState):
