@@ -74,7 +74,31 @@ async def query_preprocessor_hook(
 
 
 async def post_processor_hook(state: AgentState) -> Dict[str, AnyMessage]:
-    pass
+
+    """Processor used after LLM generates result"""
+    human_message_indices = map(
+        lambda x : state['messages'].index(x) if isinstance(x,HumanMessage) else -1,
+        state['messages']
+    )
+
+    max_index = max(human_message_indices)
+    content= state['messages'][max_index].content[0]
+
+    if not isinstance(content, str):
+        content = content['text']
+        print("=" * 10 + "\n")
+        print(content)
+        print("=" * 10 + "\n")
+
+
+    if '<context>' not in content and  '</context>' not  in content:
+        return {"messages": state["messages"]}
+    
+    content = content.split("\n\n<context>")[0]
+
+    state["messages"][max_index].content = content
+
+    return {"messages": state["messages"]}
 
 
 async def summarization_node(state: AgentState) -> Dict[str, AnyMessage]:
