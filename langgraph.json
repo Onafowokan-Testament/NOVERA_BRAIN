@@ -1,0 +1,9 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "agent": "./src/agent/supervisor_graph.py:instantiate_novera_orchestrator"
+  },
+  "env": ".env",
+  "python_version": "3.13",
+  "image_distro": "wolfi"
+}

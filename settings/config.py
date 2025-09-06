@@ -1,0 +1,41 @@
+import os
+
+from decouple import config
+
+# TELEGRAM
+BOT_TOKEN = config("BOT_TOKEN")
+
+# DATABASE
+DATABASE_URL = config("DATABASE_URL")
+POSTGRES_URL = config("POSTGRES_URL")
+REDIS_URL = config("REDIS_URL")
+
+# TOOLS
+GOOGLE_API_KEY = config("GOOGLE_API_KEY")
+TAVILY_API_KEY = config("TAVILY_API_KEY")
+
+# QDRANT
+QDRANT_API_KEY = config("QDRANT_API_KEY")
+QDRANT_ENDPOINT = config("QDRANT_ENDPOINT")
+
+# LANGSMITH
+LANGSMITH_TRACING = config("LANGSMITH_TRACING", default="false", cast=bool)
+LANGSMITH_ENDPOINT = config("LANGSMITH_ENDPOINT")
+LANGSMITH_API_KEY = config("LANGSMITH_API_KEY")
+LANGSMITH_PROJECT = config("LANGSMITH_PROJECT")
+
+# MODEL
+OPENAI_API_KEY = config("OPENAI_API_KEY")
+EMBEDDING_MODEL_NAME = config("EMBEDDING_MODEL_NAME")
+
+# Set environment variables for libraries that expect them
+os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
+os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
+os.environ["TAVILY_API_KEY"] = TAVILY_API_KEY
+
+# LangSmith environment variables
+if LANGSMITH_TRACING:
+    os.environ["LANGCHAIN_TRACING_V2"] = "true"
+    os.environ["LANGCHAIN_ENDPOINT"] = LANGSMITH_ENDPOINT
+    os.environ["LANGCHAIN_API_KEY"] = LANGSMITH_API_KEY
+    os.environ["LANGCHAIN_PROJECT"] = LANGSMITH_PROJECT

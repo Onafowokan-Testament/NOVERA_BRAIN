@@ -1,0 +1,59 @@
+[project]
+name = "NOVERA_AGENT"
+version = "0.0.1"
+description = "The brain behind NOVERA"
+authors = [
+    { name = "Onafowokan Testament", email = "adebolaonafowokan@gmail.com" },
+]
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    
+
+    # LangChain & LangGraph Core
+    "langchain",
+    "langchain-core",
+    "langchain-community",
+    "langchain_experimental",
+    "langgraph",
+    "langgraph-supervisor",
+
+    # LLM Integrations
+    "langchain-openai",
+    "langchain-google-genai",
+    "openai",
+
+    # Vector Stores & Search
+    "langchain-qdrant",
+    "qdrant-client",
+    "langchain-tavily",
+
+    # Document Processing
+    "langchain-text-splitters",
+    "pypdf",
+    "sentence-transformers",
+    "langdetect",
+
+    # Database & Persistence
+    "langchain-postgres",
+    "langgraph-checkpoint-postgres",
+    "asyncpg",
+    "sqlalchemy[asyncio]",
+    "psycopg-binary",
+    "alembic",
+
+    # Data Processing
+    "pandas",
+    "requests",
+
+    # Development & Utilities
+    "python-dotenv",
+    "pydantic",
+    "langsmith",
+    "loguru",
+    "ipython",
+    "python-decouple"
+
+ 
+]
