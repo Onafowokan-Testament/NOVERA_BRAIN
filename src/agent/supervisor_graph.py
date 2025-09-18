@@ -10,7 +10,7 @@ from langgraph_supervisor import create_supervisor
 from loguru import logger
 
 from agent.configuration import NoveraConfig
-from agent.meta_state import AgentState
+from agent.meta_state import OrchestrationState
 from agent.prompt import SYSTEM_PROMPT
 from agent.tools import TOOLS, store_user_profile, user_profile_builder
 from agent.utils import load_chat_model
@@ -20,7 +20,7 @@ supervisor_agent_name = "NOVERA_AGENT_ORCHESTRATOR"
 
 
 async def query_preprocessor_hook(
-    state: AgentState,
+    state: OrchestrationState,
 ) -> Union[Dict[str, List[BaseMessage]], Command]:
     if state.get("messages") or state["messages"] is None:
         logger.error("No message in state")
@@ -74,7 +74,7 @@ async def query_preprocessor_hook(
     }
 
 
-async def post_processor_hook(state: AgentState) -> Dict[str, AnyMessage]:
+async def post_processor_hook(state: OrchestrationState) -> Dict[str, AnyMessage]:
     """Processor used after LLM generates result"""
     human_message_indices = map(
         lambda x: state["messages"].index(x) if isinstance(x, HumanMessage) else -1,
@@ -100,7 +100,7 @@ async def post_processor_hook(state: AgentState) -> Dict[str, AnyMessage]:
     return {"messages": state["messages"]}
 
 
-async def summarization_node(state: AgentState):
+async def summarization_node(state: OrchestrationState):
     model = load_chat_model(NoveraConfig.model, temperature=0).bind_tools(
         [user_profile_builder]
     )
@@ -123,10 +123,6 @@ All extracted insights MUST be concise and actionable for building a comprehensi
     return state
 
 
-async def structured_ouput_node(state: AgentState):
-    pass
-
-
 def instantiate_novera_orchestrator():
 
     graph_name = "Novera_graph"
@@ -143,7 +139,7 @@ def instantiate_novera_orchestrator():
         pre_model_hook=query_preprocessor_hook,
         post_model_hook=post_processor_hook,
         parallel_tool_calls=True,
-        state_schema=AgentState,
+        state_schema=OrchestrationState,
         config_schema=NoveraConfig,
         supervisor_name=supervisor_name,
         add_handoff_messages=True,
@@ -154,15 +150,13 @@ def instantiate_novera_orchestrator():
 
     supervisor_agent = supervisor_agent.compile(name=supervisor_agent_name)
 
-    final_graph = StateGraph(AgentState, config_schema=NoveraConfig)
+    final_graph = StateGraph(OrchestrationState, config_schema=NoveraConfig)
 
     final_graph.add_node("supervisor_agent_node", supervisor_agent)
     final_graph.add_node("summarization_node", summarization_node)
-    final_graph.add_node("structured_output_node", structured_ouput_node)
 
     final_graph.add_edge(START, "supervisor_agent_node")
     final_graph.add_edge("supervisor_agent_node", "summarization_node")
-    final_graph.add_edge("summarization_node", "structured_output_node")
-    final_graph.add_edge("structured_ouput_node", "END")
+    final_graph.add_edge("summarization_node", "END")
 
     return final_graph.compile(name=graph_name)

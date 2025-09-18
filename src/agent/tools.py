@@ -78,4 +78,4 @@ async def _process_tool_call(tool_call, config: RunnableConfig):
     return result
 
 
-TOOLS: List[Callable, Any] = [web_search_tool]
+TOOLS: List[Callable[..., Any]] = [web_search_tool]

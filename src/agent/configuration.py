@@ -6,7 +6,7 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.config import get_config
 from loguru import logger
 
-from .prompt import SYSTEM_PROMPT
+from agent.prompt import SYSTEM_PROMPT
 
 
 @dataclass
@@ -22,7 +22,7 @@ class NoveraConfig:
     user_id: str = field(default="default")
 
     model: Annotated[str, {"__template_metadata__": {"kind": "llm"}}] = field(
-        default="openai/gpt",
+        default="GPT-4o mini",
         metadata={
             "description": "This is the name of the language model the agent uses for interaction"
         },
