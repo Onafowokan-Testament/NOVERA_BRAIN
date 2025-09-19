@@ -108,33 +108,3 @@ class DatabaseConnection:
 
 
 db_connection = DatabaseConnection()
-
-
-# Convenience functions
-async def connect_database():
-    """Initialize database connection"""
-    connection_string = Settings.MONGODB_URL
-    database_name = Settings.DATABASE_NAME
-
-    if not connection_string or not database_name:
-        raise ValueError(
-            "MONGODB_URI and DATABASE_NAME environment variables are required"
-        )
-
-    await db_connection.connect(connection_string, database_name)
-
-
-async def disconnect_database():
-    """Close database connection"""
-    await db_connection.disconnect()
-
-
-def get_database() -> AsyncIOMotorDatabase:
-    """Get database instance"""
-    return db_connection.database
-
-
-def get_client() -> AsyncIOMotorClient:
-    """Get client instance"""
-    return db_connection.client
-
