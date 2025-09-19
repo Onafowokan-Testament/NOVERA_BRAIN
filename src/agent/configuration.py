@@ -22,7 +22,7 @@ class NoveraConfig:
     user_id: str = field(default="default")
 
     model: Annotated[str, {"__template_metadata__": {"kind": "llm"}}] = field(
-        default="GPT-4o mini",
+        default="openai/gpt-4o-mini",
         metadata={
             "description": "This is the name of the language model the agent uses for interaction"
         },

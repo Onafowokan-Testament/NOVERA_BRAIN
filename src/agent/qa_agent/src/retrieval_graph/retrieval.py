@@ -6,14 +6,14 @@ vector store backends, specifically Elasticsearch, Pinecone, and MongoDB.
 The retrievers support filtering results by user_id to ensure data isolation between users.
 """
 
-import os
-from contextlib import contextmanager
+from contextlib import asynccontextmanager
 from typing import Generator
 
 from langchain_core.embeddings import Embeddings
 from langchain_core.runnables import RunnableConfig
 from langchain_core.vectorstores import VectorStoreRetriever
-from langchain_pinecone import PineconeVectorStore
+
+from scripts.rag_store import RAGStore
 
 from .configuration import IndexConfiguration
 
@@ -36,31 +36,32 @@ def make_text_encoder(model: str) -> Embeddings:
 ## Retriever constructors
 
 
-@contextmanager
-def make_pinecone_retriever(
+@asynccontextmanager
+async def make_qdrant_retriever(
     configuration: IndexConfiguration, embedding_model: Embeddings
 ) -> Generator[VectorStoreRetriever, None, None]:
-    """Configure this agent to connect to a specific pinecone index."""
+    """Configure this agent to connect to a specific qdrant index."""
 
     search_kwargs = configuration.search_kwargs
+    rag_store = RAGStore()
+    vstore = await rag_store.get_vector_store()
+    # vstore = QdrantVectorStore.from_existing_index(
+    #     os.environ["PINECONE_INDEX_NAME"], embedding=embedding_model
+    # )
+    retriever = vstore.as_retriever(search_kwargs=search_kwargs)
 
-    search_filter = search_kwargs.setdefault("filter", {})
-    search_filter.update({"user_id": configuration.user_id})
-    vstore = PineconeVectorStore.from_existing_index(
-        os.environ["PINECONE_INDEX_NAME"], embedding=embedding_model
-    )
-    yield vstore.as_retriever(search_kwargs=search_kwargs)
+    try:
+        yield retriever
+    finally:
+        pass
 
 
-@contextmanager
-def make_retriever(
+@asynccontextmanager
+async def make_retriever(
     config: RunnableConfig,
 ) -> Generator[VectorStoreRetriever, None, None]:
     """Create a retriever for the agent, based on the current configuration."""
     configuration = IndexConfiguration.from_runnable_config(config)
     embedding_model = make_text_encoder(configuration.embedding_model)
-    user_id = configuration.user_id
-    if not user_id:
-        raise ValueError("Please provide a valid user_id in the configuration.")
-    with make_pinecone_retriever(configuration, embedding_model) as retriever:
+    async with make_qdrant_retriever(configuration, embedding_model) as retriever:
         yield retriever

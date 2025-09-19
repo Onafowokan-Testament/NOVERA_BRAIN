@@ -19,7 +19,9 @@ class IndexConfiguration:
     retriever provider choice, and search parameters.
     """
 
-    user_id: str = field(metadata={"description": "Unique identifier for the user."})
+    user_id: str = field(
+        default="user1", metadata={"description": "Unique identifier for the user."}
+    )
 
     embedding_model: Annotated[
         str,
@@ -32,10 +34,10 @@ class IndexConfiguration:
     )
 
     retriever_provider: Annotated[
-        Literal["elastic", "elastic-local", "pinecone", "mongodb", ],
+        Literal["elastic", "elastic-local", "pinecone", "mongodb", "qdrant"],
         {"__template_metadata__": {"kind": "retriever"}},
     ] = field(
-        default="mongodb",
+        default="qdrant",
         metadata={
             "description": "The vector store provider to use for retrieval. Options are 'elastic', 'pinecone', or 'mongodb'."
         },
@@ -80,9 +82,16 @@ class Configuration(IndexConfiguration):
     )
 
     response_model: Annotated[str, {"__template_metadata__": {"kind": "llm"}}] = field(
-        default="GPT-4o mini",
+        default="openai/gpt-4o-mini",
         metadata={
             "description": "The language model used for generating responses. Should be in the form: provider/model-name."
+        },
+    )
+
+    max_search_results: int = field(
+        default=5,
+        metadata={
+            "description": "The maximum number of search results to return for each search query."
         },
     )
 
@@ -94,7 +103,7 @@ class Configuration(IndexConfiguration):
     )
 
     query_model: Annotated[str, {"__template_metadata__": {"kind": "llm"}}] = field(
-        default="GPT-4o mini",
+        default="openai/gpt-4o-mini",
         metadata={
             "description": "The language model used for processing and refining queries. Should be in the form: provider/model-name."
         },

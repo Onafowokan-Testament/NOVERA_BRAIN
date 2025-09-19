@@ -12,13 +12,14 @@ from typing import cast
 from langchain_core.documents import Document
 from langchain_core.messages import BaseMessage
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.pydantic_v1 import BaseModel
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph import StateGraph
+from pydantic import BaseModel
 
 from . import retrieval
 from .configuration import Configuration
 from .state import InputState, State
+from .tools import TOOLS
 from .utils import format_docs, get_message_text, load_chat_model
 
 # Define the function that calls the model
@@ -100,7 +101,7 @@ async def retrieve(
         dict[str, list[Document]]: A dictionary with a single key "retrieved_docs"
         containing a list of retrieved Document objects.
     """
-    with retrieval.make_retriever(config) as retriever:
+    async with retrieval.make_retriever(config) as retriever:
         response = await retriever.ainvoke(state.queries[-1], config)
         return {"retrieved_docs": response}
 
@@ -117,7 +118,7 @@ async def respond(
             ("placeholder", "{messages}"),
         ]
     )
-    model = load_chat_model(configuration.response_model)
+    model = load_chat_model(configuration.response_model).bind_tools(TOOLS)
 
     retrieved_docs = format_docs(state.retrieved_docs)
     message_value = await prompt.ainvoke(
@@ -136,19 +137,16 @@ async def respond(
 # Define a new graph (It's just a pipe)
 
 
-builder = StateGraph(State, input=InputState, config_schema=Configuration)
+def initiate_qa_agent():
+    builder = StateGraph(State, input=InputState, config_schema=Configuration)
 
-builder.add_node(generate_query)
-builder.add_node(retrieve)
-builder.add_node(respond)
-builder.add_edge("__start__", "generate_query")
-builder.add_edge("generate_query", "retrieve")
-builder.add_edge("retrieve", "respond")
+    builder.add_node(generate_query)
+    builder.add_node(retrieve)
+    builder.add_node(respond)
+    builder.add_edge("__start__", "generate_query")
+    builder.add_edge("generate_query", "retrieve")
+    builder.add_edge("retrieve", "respond")
 
-# Finally, we compile it!
-# This compiles it into a graph you can invoke and deploy.
-graph = builder.compile(
-    interrupt_before=[],  # if you want to update the state before calling the tools
-    interrupt_after=[],
-)
-graph.name = "RetrievalGraph"
+    # Finally, we compile it!
+    # This compiles it into a graph you can invoke and deploy.
+    return builder.compile(name="QA_AGENT")

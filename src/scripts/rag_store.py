@@ -9,9 +9,9 @@ from langchain_community.document_loaders.generic import GenericLoader
 from langchain_community.document_loaders.parsers import PyPDFParser, RapidOCRBlobParser
 from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
-from langchain_qdrant import QdrantVectorStore, RetrievalMode
+from langchain_qdrant import QdrantVectorStore
 from loguru import logger
-from qdrant_client import QdrantClient
+from qdrant_client import AsyncQdrantClient
 from qdrant_client.http.exceptions import UnexpectedResponse
 from qdrant_client.http.models import Distance, VectorParams
 
@@ -23,7 +23,7 @@ Settings.validate_keys()
 class RAGStore:
     def __init__(self, collection_name: str = "novera_handbook"):
         self.docs: List[Document] = []
-        self.client: Optional[QdrantClient] = None
+        self.client: Optional[AsyncQdrantClient] = None
         self.collection_name = collection_name
         self.embedding = OpenAIEmbeddings(api_key=Settings.OPENAI_API_KEY)
 
@@ -56,11 +56,12 @@ class RAGStore:
             logger.error(f"Error loading document {e}")
             raise
 
-    def _get_client(self) -> QdrantClient:
+    def _get_client(self) -> AsyncQdrantClient:
         """Get or create Qdrant client."""
         if self.client is None:
-            self.client = QdrantClient(
-                api_key=Settings.QDRANT_API_KEY, url=Settings.QDRANT_API_ENDPOINT
+            self.client = AsyncQdrantClient(
+                api_key=Settings.QDRANT_API_KEY,
+                url=Settings.QDRANT_API_ENDPOINT,
             )
         return self.client
 
@@ -68,7 +69,7 @@ class RAGStore:
         """Check if collection exists."""
         try:
             client = self._get_client()
-            collections = client.get_collections()
+            collections = await client.get_collections()
             return any(
                 col.name == self.collection_name for col in collections.collections
             )
@@ -85,12 +86,12 @@ class RAGStore:
 
             if exists and force_recreate:
                 logger.info(f"Deleting existing collection: {self.collection_name}")
-                client.delete_collection(self.collection_name)
+                await client.delete_collection(self.collection_name)
                 exists = False
 
             if not exists:
                 logger.info(f"Creating collection: {self.collection_name}")
-                client.create_collection(
+                await client.create_collection(
                     collection_name=self.collection_name,
                     vectors_config=VectorParams(size=1536, distance=Distance.COSINE),
                 )
@@ -119,8 +120,9 @@ class RAGStore:
             qdrant = QdrantVectorStore.from_existing_collection(
                 embedding=self.embedding,
                 collection_name=self.collection_name,
-                url=Settings.QDRANT_API_ENDPOINT,
-                api_key=Settings.QDRANT_API_KEY,
+                client=AsyncQdrantClient(
+                    api_key=Settings.QDRANT_API_KEY, url=Settings.QDRANT_API_ENDPOINT
+                ),
             )
 
             # Process in batches to avoid memory issues
@@ -145,18 +147,19 @@ class RAGStore:
     async def get_vector_store(self) -> QdrantVectorStore:
         """Get vector store instance."""
         try:
+            logger.info(f"collection name: {self.collection_name }-------------")
             if not await self.collection_exists():
                 raise ValueError(
                     f"Collection {self.collection_name} does not exist. Create it first."
                 )
 
             logger.info("Getting vector store...")
-            vectorstore = QdrantVectorStore.from_existing_collection(
+            vectorstore = await asyncio.to_thread(
+                QdrantVectorStore.from_existing_collection,
                 embedding=self.embedding,
                 collection_name=self.collection_name,
                 url=Settings.QDRANT_API_ENDPOINT,
                 api_key=Settings.QDRANT_API_KEY,
-                retrieval_mode=RetrievalMode.DENSE,
             )
 
             logger.info(f"✅ Retrieved vector store: {self.collection_name}")

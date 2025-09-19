@@ -28,11 +28,18 @@ class Settings:
 
     OPENAI_API_KEY = config("OPENAI_API_KEY")
 
+    # MONGODB
+    MONGODB_PASSWORD = config("MONGODB_PASSWORD")
+    MONGO_USERNAME = config("MONGO_USERNAME")
+    MONGODB_URL = config("MONGODB_URL")
+
     if LANGSMITH_TRACING:
         os.environ["LANGCHAIN_TRACING_V2"] = "true"
         os.environ["LANGCHAIN_ENDPOINT"] = LANGSMITH_ENDPOINT
         os.environ["LANGCHAIN_API_KEY"] = LANGSMITH_API_KEY
         os.environ["LANGCHAIN_PROJECT"] = LANGSMITH_PROJECT
+    if OPENAI_API_KEY:
+        os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 
     @classmethod
     def validate_keys(cls):

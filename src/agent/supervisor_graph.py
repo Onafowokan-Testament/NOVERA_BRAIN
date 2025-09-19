@@ -2,7 +2,7 @@ from typing import Dict, List, Union
 
 from langchain_core.messages import HumanMessage
 from langgraph.config import get_config
-from langgraph.graph import START, StateGraph
+from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import AnyMessage, BaseMessage
 from langgraph.types import Command
 from langgraph.utils.config import get_store
@@ -12,7 +12,8 @@ from loguru import logger
 from agent.configuration import NoveraConfig
 from agent.meta_state import OrchestrationState
 from agent.prompt import SYSTEM_PROMPT
-from agent.tools import TOOLS, store_user_profile, user_profile_builder
+from agent.qa_agent.src.retrieval_graph import graph as qa_graph
+from agent.tools import TOOLS, store_user_profile
 from agent.utils import load_chat_model
 
 supervisor_name = "NOVERA_SUPERVISOR"
@@ -35,18 +36,18 @@ async def query_preprocessor_hook(
     if msg.name and msg.name.startswith("transfer_to"):
         Command(goto="__end__", graph=Command.PARENT)
 
-    query = msg.content()
+    query = msg.content
 
     store = get_store()
     configuration = NoveraConfig.from_context()
 
-    memories = store.asearch(
+    memories = await store.asearch(
         ("memories", configuration.user_id),
         query=query,
         limit=3,
     )
 
-    if (len(memories) == 0) or not memories:
+    if len(memories) == 0 or not memories:
         return {"llm_inp_message": state.get("messages", [])}
 
     logger.info(f"Memories extracted: {memories}")
@@ -101,16 +102,14 @@ async def post_processor_hook(state: OrchestrationState) -> Dict[str, AnyMessage
 
 
 async def summarization_node(state: OrchestrationState):
-    model = load_chat_model(NoveraConfig.model, temperature=0).bind_tools(
-        [user_profile_builder]
-    )
+    model = load_chat_model(NoveraConfig.model, temperature=0.0).bind_tools(TOOLS)
 
     sys = """You are a text summarizer with a simple task:
 
 Analyze all previous conversations between the user and different AI(s), and extract specific insights into user behavior patterns.
 All extracted insights MUST be concise and actionable for building a comprehensive user profile."""
 
-    msg = model.invoke(state["messages"] + HumanMessage(content=sys))
+    msg = await model.ainvoke(state["messages"] + [HumanMessage(content=sys)])
 
     logger.info("Summarization message: ", msg)
 
@@ -126,7 +125,7 @@ All extracted insights MUST be concise and actionable for building a comprehensi
 def instantiate_novera_orchestrator():
 
     graph_name = "Novera_graph"
-    agents = []
+    agents = [qa_graph.initiate_qa_agent()]
 
     model = load_chat_model(NoveraConfig.model)
     prompt = SYSTEM_PROMPT
@@ -145,7 +144,7 @@ def instantiate_novera_orchestrator():
         add_handoff_messages=True,
         add_handoff_back_messages=True,
         output_mode="last_message",
-        handoff_tool_prefix="delegate_to",
+        handoff_tool_prefix="delegate_to_",
     )
 
     supervisor_agent = supervisor_agent.compile(name=supervisor_agent_name)
@@ -157,6 +156,6 @@ def instantiate_novera_orchestrator():
 
     final_graph.add_edge(START, "supervisor_agent_node")
     final_graph.add_edge("supervisor_agent_node", "summarization_node")
-    final_graph.add_edge("summarization_node", "END")
+    final_graph.add_edge("summarization_node", END)
 
     return final_graph.compile(name=graph_name)
