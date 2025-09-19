@@ -52,12 +52,13 @@ dependencies = [
     "pydantic",
     "langsmith",
     "loguru",
-    "ipython",
+
     "python-decouple",
-    "pydantic",
+    
      #Database
 
     "pymongo",
-    "motor"
+    "motor",
+    "bcrypt"
  
 ]

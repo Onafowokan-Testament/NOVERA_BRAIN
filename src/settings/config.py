@@ -32,6 +32,7 @@ class Settings:
     MONGODB_PASSWORD = config("MONGODB_PASSWORD")
     MONGO_USERNAME = config("MONGO_USERNAME")
     MONGODB_URL = config("MONGODB_URL")
+    DATABASE_NAME = config("DATABASE_URL", "novera-database")
 
     if LANGSMITH_TRACING:
         os.environ["LANGCHAIN_TRACING_V2"] = "true"

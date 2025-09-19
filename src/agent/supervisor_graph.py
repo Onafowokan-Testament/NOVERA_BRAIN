@@ -33,8 +33,8 @@ async def query_preprocessor_hook(
         logger.error("Exception found: No message in message_list")
         return {"llm_inp_message": state.get("messages", [])}
 
-    if msg.name and msg.name.startswith("transfer_to"):
-        Command(goto="__end__", graph=Command.PARENT)
+    if msg.name and msg.name.startswith("transfer_back_to_"):
+        return Command(goto="__end__", graph=Command.PARENT)
 
     query = msg.content
 

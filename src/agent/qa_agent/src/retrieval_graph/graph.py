@@ -13,7 +13,7 @@ from langchain_core.documents import Document
 from langchain_core.messages import BaseMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableConfig
-from langgraph.graph import StateGraph
+from langgraph.graph import END, StateGraph
 from pydantic import BaseModel
 
 from . import retrieval
@@ -146,6 +146,7 @@ def initiate_qa_agent():
     builder.add_edge("__start__", "generate_query")
     builder.add_edge("generate_query", "retrieve")
     builder.add_edge("retrieve", "respond")
+    builder.add_edge("respond", END)
 
     # Finally, we compile it!
     # This compiles it into a graph you can invoke and deploy.

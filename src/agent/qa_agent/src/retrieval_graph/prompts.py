@@ -1,6 +1,6 @@
 """Default prompts."""
 
-RESPONSE_SYSTEM_PROMPT = """You are a helpful AI assistant. Answer the user's questions based on the retrieved documents.
+RESPONSE_SYSTEM_PROMPT = """You are a helpful AI assistant. Answer the user's questions based on the retrieved documents.You are given a web search tool for questions that requires up to date information so make sure you use it adequately
 
 {retrieved_docs}
 
