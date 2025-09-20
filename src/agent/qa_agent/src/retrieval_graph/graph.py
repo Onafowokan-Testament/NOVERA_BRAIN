@@ -13,16 +13,21 @@ from langchain_core.documents import Document
 from langchain_core.messages import BaseMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableConfig
+from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, StateGraph
+from langgraph.store.memory import InMemoryStore
 from pydantic import BaseModel
 
 from . import retrieval
 from .configuration import Configuration
 from .state import InputState, State
-from .tools import TOOLS
 from .utils import format_docs, get_message_text, load_chat_model
 
 # Define the function that calls the model
+
+
+checkpointer = InMemorySaver()
+store = InMemoryStore()
 
 
 class SearchQuery(BaseModel):
@@ -118,7 +123,7 @@ async def respond(
             ("placeholder", "{messages}"),
         ]
     )
-    model = load_chat_model(configuration.response_model).bind_tools(TOOLS)
+    model = load_chat_model(configuration.response_model)
 
     retrieved_docs = format_docs(state.retrieved_docs)
     message_value = await prompt.ainvoke(
@@ -150,4 +155,6 @@ def initiate_qa_agent():
 
     # Finally, we compile it!
     # This compiles it into a graph you can invoke and deploy.
-    return builder.compile(name="QA_AGENT")
+    return builder.compile(
+        name="QA_AGENT",
+    )

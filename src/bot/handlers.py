@@ -4,7 +4,6 @@ from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage
 from loguru import logger
-from motor.motor_asyncio import AsyncIOMotorClient
 from telegram import Update
 from telegram.ext import ContextTypes
 
@@ -44,18 +43,19 @@ async def typing_effect(context: ContextTypes.DEFAULT_TYPE, chat_id: int):
 
 
 async def start_handler(
-    update: Update, context: ContextTypes.DEFAULT_TYPE, session: AsyncIOMotorClient
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Handle /start command with proper database operations."""
     logger.info("Processing /start command")
     user = update.effective_user
-    result = await user_model.get_user(telegram_id=str(user.id))
-    existing_user = result.scalar_one_or_none()
+    existing_user = await user_model.get_user(telegram_id=str(user.id))
 
     if not existing_user:
         new_user = await user_model.create_user(
             {"telegram_id": str(user.id), "username": user.username}
         )
+        logger.info(f"User id: {new_user}")
 
         welcome_message = f"Welcome {user.first_name}! You have been registered.\n\n"
     else:
@@ -99,15 +99,16 @@ Just ask me anything about Covenant University! 😊"""
 
 
 async def info_handler(
-    update: Update, context: ContextTypes.DEFAULT_TYPE, session: AsyncIOMotorClient
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Handle /info command to display user details."""
     logger.info("Processing /info command")
     user = update.effective_user
     user_id = str(user.id)
 
-    existing_user = await user_model.get_user(telegram_id=str(user.id))
-
+    result = await user_model.get_user(telegram_id=str(user.id))
+    existing_user = result if result else None
     if not existing_user:
         message = "You don't yet exist in our database"
     else:
@@ -115,10 +116,10 @@ async def info_handler(
             Your details are as follows:
 
     
+            Telegram_id: {existing_user['telegram_id']}
 
-            Telegram_id: {existing_user.telegram_id}
 
-            Username: {existing_user.username}
+            Username: {existing_user.get('username', 'Not set')}
 
         """
 
@@ -251,12 +252,13 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         #     print('#############################')
         #     agent.build_graph()
 
-        input_data = {"messages": HumanMessage(content=user_message)}
+        input_data = {"messages": [HumanMessage(content=user_message)]}
 
         async with typing_effect(context, chat_id):
 
             agent_config = {"configurable": {"thread_id": telegram_id}}
-            result = await agent.ainvoke(config=agent_config, initial_state=input_data)
+            logger.info(f"Using config: {agent_config}")
+            result = await agent.ainvoke(input_data, config=agent_config)
 
         if not result:
             logger.warning("Empty response from workflow")

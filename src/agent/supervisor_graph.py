@@ -1,9 +1,11 @@
 from typing import Dict, List, Union
 
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage
+from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.config import get_config
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import AnyMessage, BaseMessage
+from langgraph.store.memory import InMemoryStore
 from langgraph.types import Command
 from langgraph.utils.config import get_store
 from langgraph_supervisor import create_supervisor
@@ -19,13 +21,16 @@ from agent.utils import load_chat_model
 supervisor_name = "NOVERA_SUPERVISOR"
 supervisor_agent_name = "NOVERA_AGENT_ORCHESTRATOR"
 
+checkpointer = InMemorySaver()
+store = InMemoryStore()
+
 
 async def query_preprocessor_hook(
     state: OrchestrationState,
 ) -> Union[Dict[str, List[BaseMessage]], Command]:
-    if state.get("messages") or state["messages"] is None:
+    if not state.get("messages") or state["messages"] is None:
         logger.error("No message in state")
-
+        return {"llm_inp_message": []}
     try:
         msg = state["messages"][-1]
 
@@ -122,6 +127,27 @@ All extracted insights MUST be concise and actionable for building a comprehensi
     return state
 
 
+async def structured_output_node(state: OrchestrationState):
+
+    # from rich import print
+    # print([msg for msg in state["messages"]])
+
+    last_ai_message = list(
+        filter(
+            lambda x: x.type == "ai"
+            and not x.response_metadata.get("__is_handoff_back", False),
+            state["messages"],
+        )
+    )[-1]
+    # msg = await model.ainvoke(
+    #     [{"role": "assistant", "content": sys.format(text=last_ai_message.content)}]
+    # ) 
+
+    # response = json.dumps(split_structured_output(msg.content))
+
+    return {"messages": [AIMessage(content=last_ai_message.content)]}
+
+
 def instantiate_novera_orchestrator():
 
     graph_name = "Novera_graph"
@@ -147,15 +173,19 @@ def instantiate_novera_orchestrator():
         handoff_tool_prefix="delegate_to_",
     )
 
-    supervisor_agent = supervisor_agent.compile(name=supervisor_agent_name)
+    supervisor_agent = supervisor_agent.compile(
+        name=supervisor_agent_name,
+    )
 
     final_graph = StateGraph(OrchestrationState, config_schema=NoveraConfig)
 
     final_graph.add_node("supervisor_agent_node", supervisor_agent)
     final_graph.add_node("summarization_node", summarization_node)
-
+    final_graph.add_node("structured_output_node", structured_output_node)
     final_graph.add_edge(START, "supervisor_agent_node")
     final_graph.add_edge("supervisor_agent_node", "summarization_node")
-    final_graph.add_edge("summarization_node", END)
-
-    return final_graph.compile(name=graph_name)
+    final_graph.add_edge("summarization_node", "structured_output_node")
+    final_graph.add_edge("structured_output_node", END)
+    logger.info(f"Using checkpointer: {checkpointer}")
+    logger.info(f"Using store: {store}")
+    return final_graph.compile(name=graph_name, checkpointer=checkpointer, store=store)

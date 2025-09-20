@@ -1,13 +1,11 @@
 from contextlib import asynccontextmanager
 
-from  settings.config import Settings
-from fastapi import Depends, FastAPI, HTTPException, Request
-from telegram import Update
-from bot.database.database import db_connection
-from bot.database.models.user import AsyncUserModel
-from src.bot.telegram_bot import build_bot
+from fastapi import FastAPI, HTTPException, Request
 from loguru import logger
+from telegram import Update
 
+from bot.database.database import db_connection
+from src.bot.telegram_bot import build_bot
 
 
 class BotManager:
@@ -40,11 +38,13 @@ bot_manager = BotManager()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Starting up bot")
-    await bot_manager.initialize()
-    
+
     logger.info("connecting to database")
     await db_connection.connect()
+    logger.info("Successfully connected to database")
+    
+    logger.info("Starting up bot")
+    await bot_manager.initialize()
 
     logger.info("✅ Bot and database ready!")
     yield
@@ -62,7 +62,9 @@ async def home():
 
 
 @app.post("/webhook")
-async def webhook_handler(request: Request, ):
+async def webhook_handler(
+    request: Request,
+):
     """Handle telegram webhook updates"""
 
     try:

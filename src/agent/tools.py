@@ -20,8 +20,7 @@ async def web_search_tool(query: str) -> Optional[dict[str, Any]]:
     """
     configuration = NoveraConfig.from_context()
     search = TavilySearch(
-        max_results=configuration.max_search_result,
-        time_range="year",
+        max_results=configuration.max_search_results,
         include_domains=["https://covenantuniversity.edu.ng"],
     )
     return cast(dict[str, Any], await search.ainvoke({"query": query}))

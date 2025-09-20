@@ -23,9 +23,14 @@ class DatabaseConnection:
         return cls._instance
 
     @property
-    def client(self):
+    async def client(self):
         if self._client is None:
-            raise RuntimeError("Database not connected . call connect () first")
+            logger.info("Connecting to database first")
+            try:
+                await self.connect()
+            except RuntimeError:
+                raise RuntimeError("Database not connected . call connect () first")
+
         return self._client
 
     @property
@@ -43,19 +48,21 @@ class DatabaseConnection:
         """connect to mongodb"""
 
         connection_options = {
-            "connectTimeoutMS": 5000,
-            "socketTimeoutMS": 5000,
+            "connectTimeoutMS": 30000,
+            "socketTimeoutMS": 30000,
             "maxPoolSize": 20,
             "minPoolSize": 5,
-            "socketSelectionTimeoutMS": 5000,
             "maxIdleTimeMS": 30000,
             "retryWrites": True,
             **kwargs,
         }
         try:
+
+            logger.info("connecting to client")
             self._client: AsyncIOMotorClient = AsyncIOMotorClient(
-                connection_string**connection_options
+                connection_string, **connection_options
             )
+            logger.info("Connected to client")
 
             await self._client.admin.command("ping")
             self._database = self._client[database_name]
@@ -74,12 +81,12 @@ class DatabaseConnection:
 
     async def get_collection(self, collection_name):
         if self._database is None:
-            self.connect()
+            await self.connect()
         return self._database[collection_name]
 
     async def disconnect(self) -> None:
         if self._client:
-            self._client.close()
+            self._client.close() 
             self._database = None
             self._client = None
             logger.info("MongoDB connection closed")

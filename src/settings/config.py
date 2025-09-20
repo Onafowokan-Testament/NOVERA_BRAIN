@@ -5,6 +5,7 @@ from decouple import config
 
 class Settings:
     BOT_TOKEN = config("BOT_TOKEN")
+    TEST_BOT_TOKEN = config("TEST_BOT_TOKEN")
 
     DATABASE_URL = config("DATABASE_URL")
 
@@ -32,9 +33,9 @@ class Settings:
     MONGODB_PASSWORD = config("MONGODB_PASSWORD")
     MONGO_USERNAME = config("MONGO_USERNAME")
     MONGODB_URL = config("MONGODB_URL")
-    DATABASE_NAME = config("DATABASE_URL", "novera-database")
+    DATABASE_NAME = "novera"
 
-    if LANGSMITH_TRACING:
+    if LANGSMITH_TRACING:  
         os.environ["LANGCHAIN_TRACING_V2"] = "true"
         os.environ["LANGCHAIN_ENDPOINT"] = LANGSMITH_ENDPOINT
         os.environ["LANGCHAIN_API_KEY"] = LANGSMITH_API_KEY
