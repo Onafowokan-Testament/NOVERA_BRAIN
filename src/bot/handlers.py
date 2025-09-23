@@ -260,7 +260,22 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 "configurable": {"thread_id": telegram_id, "user_id": telegram_id}
             }
             logger.info(f"Using config: {agent_config}")
-            result = await agent.ainvoke(input_data, config=agent_config)
+            try:
+                result = await agent.ainvoke(input_data, config=agent_config)
+                logger.info(f"Agent result type: {type(result)}")
+                logger.info(f"Agent result content: {result}")
+            except TypeError as te:
+                logger.error(f"TypeError in agent invocation: {str(te)}")
+                await update.message.reply_text(
+                    "I encountered a processing error. Please try rephrasing your question! 🤔"
+                )
+                return
+            except Exception as ae:
+                logger.error(f"Agent invocation error: {str(ae)}")
+                await update.message.reply_text(
+                    "I'm having trouble processing your request right now. Please try again! 🤔"
+                )
+                return
 
         if not result:
             logger.warning("Empty response from workflow")

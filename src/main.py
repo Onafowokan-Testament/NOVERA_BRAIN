@@ -42,7 +42,7 @@ async def lifespan(app: FastAPI):
     logger.info("connecting to database")
     await db_connection.connect()
     logger.info("Successfully connected to database")
-    
+
     logger.info("Starting up bot")
     await bot_manager.initialize()
 

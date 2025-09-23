@@ -61,6 +61,8 @@ dependencies = [
     "motor",
     "bcrypt",
 
-    "uvicorn","fastapi","asyncio"
+    "uvicorn","fastapi","asyncio","python-telegram-bot", "aiofiles"
+
+    
  
 ]
