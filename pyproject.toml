@@ -59,6 +59,8 @@ dependencies = [
 
     "pymongo",
     "motor",
-    "bcrypt"
+    "bcrypt",
+
+    "uvicorn","fastapi","asyncio"
  
 ]
