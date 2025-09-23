@@ -2,7 +2,7 @@ import requests
 
 from settings.config import Settings
 
-TELEGRAM_BOT_TOKEN = Settings.TEST_BOT_TOKEN
+TELEGRAM_BOT_TOKEN = Settings.BOT_TOKEN
 
 
 render_url = "https://novera.onrender.com"

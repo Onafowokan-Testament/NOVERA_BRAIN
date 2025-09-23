@@ -22,7 +22,7 @@ async def build_bot() -> Any:
     """Build and return telegram bot application"""
 
     try:
-        app = ApplicationBuilder().token(Settings.TEST_BOT_TOKEN).build()
+        app = ApplicationBuilder().token(Settings.BOT_TOKEN).build()
         app.add_handler(CommandHandler("help", help_handler))
         app.add_handler(CommandHandler("about", about_handler))
         app.add_handler(CommandHandler("commands", commands_handler))
