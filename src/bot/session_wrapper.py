@@ -6,13 +6,13 @@ from loguru import logger
 from bot.database.database import db_connection
 from bot.handlers import info_handler, start_handler
 
-client = db_connection.client
+client = db_connection.get_client()
 
 
 @asynccontextmanager
 async def get_db_session():
     try:
-        client = await db_connection.client
+        client = await db_connection.get_client()
         yield client
     except Exception as e:
         logger.error(f"Database session error: {str(e)}")
