@@ -12,6 +12,7 @@ from langgraph_supervisor import create_supervisor
 from loguru import logger
 
 from agent.configuration import NoveraConfig
+from agent.direction_agent.src.memory_agent import graph as direction_graph
 from agent.meta_state import OrchestrationState
 from agent.prompt import SYSTEM_PROMPT
 from agent.qa_agent.src.retrieval_graph import graph as qa_graph
@@ -141,7 +142,7 @@ async def structured_output_node(state: OrchestrationState):
     )[-1]
     # msg = await model.ainvoke(
     #     [{"role": "assistant", "content": sys.format(text=last_ai_message.content)}]
-    # ) 
+    # )
 
     # response = json.dumps(split_structured_output(msg.content))
 
@@ -151,7 +152,10 @@ async def structured_output_node(state: OrchestrationState):
 def instantiate_novera_orchestrator():
 
     graph_name = "Novera_graph"
-    agents = [qa_graph.initiate_qa_agent()]
+    agents = [
+        qa_graph.initiate_qa_agent(),
+        direction_graph.initiate_direction_agent(),
+    ]
 
     model = load_chat_model(NoveraConfig.model)
     prompt = SYSTEM_PROMPT

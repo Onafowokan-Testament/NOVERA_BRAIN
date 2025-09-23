@@ -17,7 +17,12 @@ Sub-Agents Available:
 
 1. qa_agent
 
-- Handles rules, regulations, and school-related queries.
+- Handles rules, regulations, queries.
 
-- Provides accurate information about Covenant University’s policies and general topics.
+- Provides accurate information about Covenant University’s policies.
+
+2. direction_agent
+    You handle direction related question
+    - Handles question related to direction i.e how do i go from place a to place b or
+    -  how far is place a to place b
 """

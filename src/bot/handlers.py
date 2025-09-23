@@ -256,7 +256,9 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
         async with typing_effect(context, chat_id):
 
-            agent_config = {"configurable": {"thread_id": telegram_id}}
+            agent_config = {
+                "configurable": {"thread_id": telegram_id, "user_id": telegram_id}
+            }
             logger.info(f"Using config: {agent_config}")
             result = await agent.ainvoke(input_data, config=agent_config)
 

@@ -1,0 +1,368 @@
+{
+  "locations": [
+    "medical_house",
+    "cst",
+    "clds",
+    "engineering",
+    "cmss",
+    "dorcas_hall",
+    "lydia_hall",
+    "mary_hall",
+    "deborah_hall",
+    "library_center",
+    "daniel_hall",
+    "joseph_hall",
+    "paul_hall",
+    "peter_hall",
+    "john_hall",
+    "esther_hall",
+    "sport_complex",
+    "admirable_park",
+    "chapel",
+    "car_park"
+  ],
+  "location_aliases": {
+    "medical_house": ["hospital", "medical"],
+    "cst": ["Centre for Systems and Technology"],
+    "clds": ["College of Leadership Development Studies"],
+    "cmss": ["College of Management and Social Sciences"],
+    "library_center": ["library"],
+    "sport_complex": ["sports complex", "sport", "tsport", "sports"],
+    "car_park": ["parking"],
+    "chapel": ["chapel"],
+    "dorcas_hall": ["Dorcas"],
+    "lydia_hall": ["Lydia"],
+    "mary_hall": ["Mary"],
+    "deborah_hall": ["Deborah"],
+    "daniel_hall": ["Daniel"],
+    "joseph_hall": ["Joseph"],
+    "paul_hall": ["Paul"],
+    "peter_hall": ["Peter"],
+    "esther_hall": ["Esther"]
+  },
+  "directions": {
+    "dorcas_hall_to_cst": {
+      "from": "Dorcas Hall",
+      "to": "CST",
+      "steps": [
+        "Exit Dorcas Hall through the main entrance facing the road",
+        "Walk straight down the paved pathway toward the chapel (you'll see the large building with a cross)",
+        "When you reach the chapel area, turn left and walk toward Goodness Road",
+        "Cross Goodness Road carefully - look for the zebra crossing",
+        "CST (Centre for Systems and Technology) will be the modern academic building on your left, next to the Senate Building"
+      ],
+      "estimated_time": "6-8 minutes",
+      "landmarks": ["chapel", "goodness_road", "senate_building"],
+      "difficulty": "easy"
+    },
+    "medical_house_to_library_center": {
+      "from": "Medical House",
+      "to": "Library/Center of Learning Resources",
+      "steps": [
+        "From Medical House, walk toward the main campus following the paved roads",
+        "Head toward Royalty Way (the main road running through campus)",
+        "Turn right on Royalty Way and walk past Joseph Hall and Daniel Hall",
+        "Continue straight until you see the large academic complex ahead",
+        "The Library/Center of Learning Resources is in the central academic area - look for the signs"
+      ],
+      "estimated_time": "10-12 minutes",
+      "landmarks": [
+        "royalty_way",
+        "joseph_hall",
+        "daniel_hall",
+        "academic_complex"
+      ],
+      "difficulty": "moderate"
+    },
+    "engineering_to_sport_complex": {
+      "from": "Engineering Building",
+      "to": "Sport Complex",
+      "steps": [
+        "Exit the Engineering building and head toward the main campus road",
+        "Walk south past the chapel area (you'll see the cross on the building)",
+        "Continue straight on the main pathway",
+        "Keep walking until you see the large football field ahead",
+        "The Sport Complex is unmistakable - it has a football field with a red running track around it"
+      ],
+      "estimated_time": "8-10 minutes",
+      "landmarks": ["chapel", "football_field", "running_track"],
+      "difficulty": "easy"
+    },
+    "chapel_to_deborah_hall": {
+      "from": "Chapel",
+      "to": "Deborah Hall",
+      "steps": [
+        "Exit the Chapel and face toward the residential area",
+        "Walk toward Royalty Way (the main road)",
+        "Turn right on Royalty Way and walk past Daniel Hall",
+        "Continue until you see the residential halls cluster",
+        "Deborah Hall is one of the female halls in this area - look for the hall name signs"
+      ],
+      "estimated_time": "5-7 minutes",
+      "landmarks": ["royalty_way", "daniel_hall", "residential_cluster"],
+      "difficulty": "easy"
+    },
+    "library_center_to_admirable_park": {
+      "from": "Library/Center of Learning Resources",
+      "to": "Admirable Park",
+      "steps": [
+        "Exit the Library and head toward the central campus area",
+        "Walk toward the chapel (the building with the cross)",
+        "From the chapel, continue walking toward the residential area",
+        "Admirable Park is in the open green space near the residential halls",
+        "Look for the landscaped area with benches and trees"
+      ],
+      "estimated_time": "7-9 minutes",
+      "landmarks": ["chapel", "residential_area", "green_space"],
+      "difficulty": "easy"
+    },
+    "joseph_hall_to_clds": {
+      "from": "Joseph Hall",
+      "to": "CLDS",
+      "steps": [
+        "Exit Joseph Hall and walk toward Royalty Way",
+        "Turn left on Royalty Way and head toward the academic area",
+        "Walk past the chapel on your right side",
+        "Continue toward the main academic complex",
+        "CLDS (College of Leadership Development Studies) is in the academic buildings area"
+      ],
+      "estimated_time": "8-10 minutes",
+      "landmarks": ["royalty_way", "chapel", "academic_complex"],
+      "difficulty": "moderate"
+    },
+    "car_park_to_daniel_hall": {
+      "from": "Car Park",
+      "to": "Daniel Hall",
+      "steps": [
+        "From the main car park, head toward the campus entrance",
+        "Walk along the main campus road (Royalty Way)",
+        "Continue straight past the initial buildings",
+        "Daniel Hall is one of the first residential halls you'll encounter",
+        "Look for the hall name sign - it's a multi-story residential building"
+      ],
+      "estimated_time": "5-7 minutes",
+      "landmarks": ["campus_entrance", "royalty_way", "residential_buildings"],
+      "difficulty": "easy"
+    },
+    "paul_hall_to_cmss": {
+      "from": "Paul Hall",
+      "to": "CMSS",
+      "steps": [
+        "Exit Paul Hall and head toward the academic area",
+        "Walk toward Royalty Way and turn toward the main campus",
+        "Head past the chapel area",
+        "Continue to the academic buildings complex",
+        "CMSS (College of Management and Social Sciences) is in the main academic area"
+      ],
+      "estimated_time": "10-12 minutes",
+      "landmarks": ["royalty_way", "chapel", "academic_complex"],
+      "difficulty": "moderate"
+    },
+    "esther_hall_to_sport_complex": {
+      "from": "Esther Hall",
+      "to": "Sport Complex",
+      "steps": [
+        "Exit Esther Hall and walk toward the main campus pathway",
+        "Head south toward the open area of campus",
+        "Walk past the chapel if you see it on your route",
+        "Continue straight until you see the large sports area",
+        "The Sport Complex is easily identified by the football field with red running track"
+      ],
+      "estimated_time": "10-12 minutes",
+      "landmarks": ["main_pathway", "chapel", "football_field"],
+      "difficulty": "moderate"
+    },
+    "peter_hall_to_medical_house": {
+      "from": "Peter Hall",
+      "to": "Medical House",
+      "steps": [
+        "Exit Peter Hall and head toward the main campus road",
+        "Walk toward the edge of the main campus area",
+        "Head in the direction away from the central academic buildings",
+        "Medical House is located toward the outer area of campus",
+        "Look for medical/health services signage"
+      ],
+      "estimated_time": "8-10 minutes",
+      "landmarks": ["main_campus_road", "outer_campus_area"],
+      "difficulty": "moderate"
+    },
+    "mary_hall_to_chapel": {
+      "from": "Mary Hall",
+      "to": "Chapel",
+      "steps": [
+        "Exit Mary Hall and head toward the central campus area",
+        "Walk along the main pathways toward the middle of campus",
+        "The Chapel is easily visible - look for the large building with a cross on top",
+        "Head directly toward this distinctive landmark",
+        "The Chapel is one of the most recognizable buildings on campus"
+      ],
+      "estimated_time": "6-8 minutes",
+      "landmarks": ["central_campus", "cross_building"],
+      "difficulty": "easy"
+    },
+    "lydia_hall_to_engineering": {
+      "from": "Lydia Hall",
+      "to": "Engineering Building",
+      "steps": [
+        "Exit Lydia Hall and walk toward the academic area",
+        "Head toward the main campus road system",
+        "Walk toward the academic buildings complex",
+        "The Engineering building is part of the main academic area",
+        "Look for engineering department signs and modern academic building architecture"
+      ],
+      "estimated_time": "10-12 minutes",
+      "landmarks": ["academic_area", "modern_buildings"],
+      "difficulty": "moderate"
+    },
+    "john_hall_to_car_park": {
+      "from": "John Hall",
+      "to": "Car Park",
+      "steps": [
+        "Exit John Hall and head toward the campus entrance direction",
+        "Walk along Royalty Way toward the main entrance",
+        "Continue straight toward the entrance area",
+        "The main car park is located near the campus entrance",
+        "Look for parked vehicles and entrance gates"
+      ],
+      "estimated_time": "7-9 minutes",
+      "landmarks": ["royalty_way", "campus_entrance", "entrance_gates"],
+      "difficulty": "easy"
+    },
+    "cst_to_sport_complex": {
+      "from": "CST",
+      "to": "Sport Complex",
+      "steps": [
+        "Exit CST and head away from the academic complex",
+        "Walk toward the open campus area",
+        "Head south following the main pathways",
+        "Continue until you see the large sports facilities ahead",
+        "The Sport Complex is unmistakable with its football field and running track"
+      ],
+      "estimated_time": "12-15 minutes",
+      "landmarks": ["academic_complex", "open_campus", "sports_facilities"],
+      "difficulty": "moderate"
+    },
+    "admirable_park_to_library_center": {
+      "from": "Admirable Park",
+      "to": "Library/Center of Learning Resources",
+      "steps": [
+        "From Admirable Park, head toward the central campus area",
+        "Walk toward the main academic buildings",
+        "Head in the direction of the chapel if you can see it",
+        "Continue toward the large academic complex",
+        "The Library/Center of Learning Resources is in the main academic area"
+      ],
+      "estimated_time": "7-9 minutes",
+      "landmarks": ["central_campus", "academic_buildings", "chapel"],
+      "difficulty": "easy"
+    },
+    "dorcas_hall_to_library_center": {
+      "from": "Dorcas Hall",
+      "to": "Library/Center of Learning Resources",
+      "steps": [
+        "Exit Dorcas Hall and walk toward the central campus area",
+        "Head toward the chapel (the building with the cross)",
+        "From the chapel, continue toward the academic buildings cluster",
+        "The Library/Center of Learning Resources is in the main academic complex",
+        "Look for library signage on the academic buildings"
+      ],
+      "estimated_time": "8-10 minutes",
+      "landmarks": ["chapel", "academic_complex"],
+      "difficulty": "easy"
+    },
+    "clds_to_sport_complex": {
+      "from": "CLDS",
+      "to": "Sport Complex",
+      "steps": [
+        "Exit CLDS building and head away from the academic cluster",
+        "Walk toward the open campus area",
+        "Head south following the main pathways",
+        "Continue walking until you see the large sports area",
+        "The Sport Complex is easily identified by the football field and red running track"
+      ],
+      "estimated_time": "12-15 minutes",
+      "landmarks": [
+        "academic_cluster",
+        "open_campus",
+        "football_field",
+        "running_track"
+      ],
+      "difficulty": "moderate"
+    },
+    "cmss_to_chapel": {
+      "from": "CMSS",
+      "to": "Chapel",
+      "steps": [
+        "Exit CMSS building from the main academic area",
+        "Walk toward the central campus area",
+        "The Chapel is easily visible - look for the large building with a cross on top",
+        "Head directly toward this distinctive landmark",
+        "The Chapel entrance is clearly marked"
+      ],
+      "estimated_time": "5-7 minutes",
+      "landmarks": ["academic_area", "central_campus", "cross_building"],
+      "difficulty": "easy"
+    },
+    "sport_complex_to_car_park": {
+      "from": "Sport Complex",
+      "to": "Car Park",
+      "steps": [
+        "From the Sport Complex, head toward the main campus entrance direction",
+        "Walk north following the main pathways",
+        "Head toward Royalty Way (the main campus road)",
+        "Continue toward the campus entrance area",
+        "The Car Park is located near the main entrance gates"
+      ],
+      "estimated_time": "15-18 minutes",
+      "landmarks": ["main_pathways", "royalty_way", "campus_entrance"],
+      "difficulty": "moderate"
+    },
+    "engineering_to_medical_house": {
+      "from": "Engineering Building",
+      "to": "Medical House",
+      "steps": [
+        "Exit the Engineering building and head away from the central academic area",
+        "Walk toward the outer areas of campus",
+        "Head in the direction away from the chapel and main buildings",
+        "Medical House is located in the outer campus area",
+        "Look for medical/health services signage"
+      ],
+      "estimated_time": "12-15 minutes",
+      "landmarks": ["academic_area", "outer_campus"],
+      "difficulty": "moderate"
+    },
+    "daniel_hall_to_deborah_hall": {
+      "from": "Daniel Hall",
+      "to": "Deborah Hall",
+      "steps": [
+        "Exit Daniel Hall and stay in the residential area",
+        "Walk toward the other residential halls cluster",
+        "Follow the pathways connecting the student halls",
+        "Deborah Hall is in the same residential area",
+        "Look for the hall name signs to identify Deborah Hall"
+      ],
+      "estimated_time": "3-5 minutes",
+      "landmarks": ["residential_area", "hall_pathways"],
+      "difficulty": "easy"
+    }
+  },
+  "general_landmarks": {
+    "chapel": "Large building with a distinctive cross on top, located in central campus",
+    "royalty_way": "Main road running through the campus",
+    "goodness_road": "Major road intersection near academic buildings",
+    "academic_complex": "Cluster of modern academic buildings in central campus",
+    "residential_cluster": "Area where most student halls are located",
+    "sport_complex": "Large area with football field and red running track",
+    "senate_building": "Administrative building near academic area"
+  },
+  "usage_tips": {
+    "for_new_students": [
+      "The Chapel with its cross is the most visible landmark - use it to orient yourself",
+      "Royalty Way is the main road - most destinations are accessible from it",
+      "Academic buildings are generally clustered together in the central area",
+      "Residential halls are grouped in specific areas",
+      "The Sport Complex with its red track is easily spotted from distance"
+    ],
+    "time_estimates": "All time estimates are for walking at normal pace and may vary based on individual speed and campus conditions"
+  }
+}
