@@ -21,8 +21,13 @@ class BotManager:
 
     async def shutdown(self):
         """Shutdown the bot"""
-        if self._bot:
+        logger.info("Initiating bot shutdown")
+        try:
             await self._bot.shutdown()
+            logger.info("Bot shutdown completed successfully")
+        except Exception as e:
+            logger.error(f"Error during bot shutdown: {str(e)}")
+        finally:
             self._bot = None
 
     @property
@@ -59,6 +64,16 @@ app = FastAPI(lifespan=lifespan)
 async def home():
     """Health check point"""
     return {"message": "Novera bot backend running successfully"}
+
+
+@app.get("/health")
+async def health_check():
+    """Extended health check"""
+    try:
+        bot = bot_manager.bot
+        return {"status": "healthy", "bot_initialized": bot is not None}
+    except Exception as e:
+        return {"status": "unhealthy", "error": str(e)}
 
 
 @app.post("/webhook")

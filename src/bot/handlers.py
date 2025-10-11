@@ -7,12 +7,19 @@ from loguru import logger
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from agent.supervisor_graph import instantiate_novera_orchestrator
 from bot.database.models.user import AsyncUserModel
-
+from  agent.supervisor_graph import instantiate_novera_orchestrator
 user_model = AsyncUserModel()
 load_dotenv()
 
+_agent = None
+
+def get_agent():
+    """Get or create agent instance"""
+    global _agent
+    if _agent is None:
+        _agent = instantiate_novera_orchestrator()
+    return _agent
 
 @asynccontextmanager
 async def typing_effect(context: ContextTypes.DEFAULT_TYPE, chat_id: int):
@@ -230,10 +237,9 @@ All systems operational! Ready to help with Covenant University questions! """
     await update.message.reply_text(message, parse_mode="Markdown")
 
 
-async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle general user messages with imnproved typing effect."""
 
-    agent = instantiate_novera_orchestrator()
+async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle general user messages with improved typing effect."""
 
     user_message = update.message.text.strip()
     if not user_message:
@@ -245,21 +251,17 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     chat_id = update.message.chat_id
 
     try:
-        # # agent.build_graph()
-        # if not agent.workflow:
-        #     logger.info("Building workflow")
-        #     await context.bot.send_chat_action(chat_id=chat_id, action="typing")
-        #     print('#############################')
-        #     agent.build_graph()
-
         input_data = {"messages": [HumanMessage(content=user_message)]}
 
         async with typing_effect(context, chat_id):
+            # Use cached agent instance
+            agent = get_agent()
 
             agent_config = {
                 "configurable": {"thread_id": telegram_id, "user_id": telegram_id}
             }
             logger.info(f"Using config: {agent_config}")
+
             try:
                 result = await agent.ainvoke(input_data, config=agent_config)
                 logger.info(f"Agent result type: {type(result)}")
@@ -268,7 +270,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 logger.error(f"TypeError in agent invocation: {str(te)}")
                 await update.message.reply_text(
                     "I encountered a processing error. Please try rephrasing your question! 🤔"
-                )
+                )   
                 return
             except Exception as ae:
                 logger.error(f"Agent invocation error: {str(ae)}")
@@ -283,7 +285,29 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 "Hmm, I couldn't generate a response. Try again! 🤔"
             )
         else:
-            await update.message.reply_text(f"{result['messages'][-1].content}.")
+            # Safe result processing
+            try:
+                if isinstance(result, dict) and "messages" in result:
+                    messages = result.get("messages", [])
+                    if messages and hasattr(messages[-1], "content"):
+                        content = str(messages[-1].content).strip()
+                        if content:
+                            await update.message.reply_text(f"{content}.")
+                        else:
+                            await update.message.reply_text(
+                                "I received an empty response. Please try again! 🤔"
+                            )
+                    else:
+                        await update.message.reply_text(
+                            "I couldn't process the response properly. Please try again! 🤔"
+                        )
+                else:
+                    await update.message.reply_text(f"{result}")
+            except Exception as re:
+                logger.error(f"Error processing result: {str(re)}")
+                await update.message.reply_text(
+                    "I had trouble processing the response. Please try again! 🤔"
+                )
 
     except Exception as e:
         logger.error(f"Error in message_handler: {str(e)}")

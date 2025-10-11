@@ -1,11 +1,8 @@
 """Define he agent's tools."""
 
-import json
 import uuid
-from datetime import UTC, datetime
 from typing import Annotated, Any, Callable, Dict, List, Optional
 
-import aiofiles
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import InjectedToolArg
 from langgraph.store.base import BaseStore
@@ -13,6 +10,9 @@ from loguru import logger
 
 from .configuration import Configuration
 from .models import CampusLocation
+from .route_service import RouteService
+
+route_service = RouteService()
 
 
 async def upsert_memory(
@@ -56,28 +56,44 @@ async def get_directions(
     store: Annotated[BaseStore, InjectedToolArg] = None,
 ):
     """
-    A campus navigator tool
+    Get walking directions between two campus locations.
 
-    Args:
+     Args:
+         start: Starting location
+         end: Destination location
 
-    start: Start location
-    end: end locatio
+     Returns:
+         Dict containing walking directions
 
     """
-    async with aiofiles.open(
-        "src/agent/direction_agent/data/campus_direction.json", "r"
-    ) as f:
-        content = await f.read()
-        content = json.loads(content)
 
     try:
-        road_map = start + "_to_" + end
-        directions = content.get("directions", "")
-        map = directions.get(road_map, "")
 
-        return map
-    except Exception:
-        logger.error("Encountered an error while getting direction")
+        directions = await route_service.get_directions(start, end)
+        return {
+            "from": directions["from"],
+            "to": directions["to"],
+            "distance": f"{directions['distance']:.0f} meters",
+            "duration": f"{directions['duration'] / 60:.0f} minutes",
+            "instructions": directions["instructions"],
+        }
+    except ValueError as ve:
+        # Handle known location errors
+        return {
+            "error": str(ve),
+            "from": start.value,
+            "to": end.value,
+            "instructions": ["Location not found. Please check available locations."],
+        }
+    except Exception as e:
+        # Fallback to default directions if API fails
+        logger.error(f"Error getting directions: {str(e)}")
+        return {
+            "error": f"Could not get directions: {str(e)}",
+            "from": start,
+            "to": end,
+            "instructions": ["Please refer to campus map or ask staff for directions."],
+        }
 
 
 async def process_tool_call(tool_call, config: RunnableConfig, *, store: BaseStore):
@@ -99,11 +115,11 @@ async def process_tool_call(tool_call, config: RunnableConfig, *, store: BaseSto
     status_msg = await upsert_memory(
         content={"args": tool_call["args"], "return_value": result},
         context="Calling " + tool_call["name"],
-        memory_id=datetime.now(tz=UTC),
+        memory_id=None,  # or uuid.uuid4() if you want unique IDs
         config=config,
         store=store,
     )
-    return result
+    return status_msg
 
 
 TOOLS: List[Callable[..., Any]] = [get_directions]

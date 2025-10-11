@@ -12,7 +12,7 @@ dependencies = [
     
 
     # LangChain & LangGraph Core
-    "langchain",
+    "langchain","aiohttp",
     "langchain-core",
     "langchain-community",
     "langchain_experimental",
@@ -61,7 +61,7 @@ dependencies = [
     "motor",
     "bcrypt",
 
-    "uvicorn","fastapi","asyncio","python-telegram-bot", "aiofiles"
+    "uvicorn","fastapi","asyncio","python-telegram-bot", "aiofiles","openrouteservice"
 
     
  

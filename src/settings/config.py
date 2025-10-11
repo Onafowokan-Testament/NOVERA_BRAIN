@@ -27,6 +27,10 @@ class Settings:
         "EMBEDDING_MODEL_NAME", default="text-embedding-3-small"
     )
 
+    ORS_API_KEY = config("ORS_API_KEY")
+    ORS_BASE_URL: str = "https://api.openrouteservice.org/v2/directions/foot-walking"
+    CACHE_TIMEOUT: int = 3600
+
     OPENAI_API_KEY = config("OPENAI_API_KEY")
 
     # MONGODB
@@ -35,7 +39,7 @@ class Settings:
     MONGODB_URL = config("MONGODB_URL")
     DATABASE_NAME = "novera"
 
-    if LANGSMITH_TRACING:  
+    if LANGSMITH_TRACING:
         os.environ["LANGCHAIN_TRACING_V2"] = "true"
         os.environ["LANGCHAIN_ENDPOINT"] = LANGSMITH_ENDPOINT
         os.environ["LANGCHAIN_API_KEY"] = LANGSMITH_API_KEY
@@ -57,6 +61,3 @@ class Settings:
 
         if missing_secret:
             raise ValueError(f"Missing required env vars {', '.join(missing_secret)}")
-
-
-Settings.validate_keys()

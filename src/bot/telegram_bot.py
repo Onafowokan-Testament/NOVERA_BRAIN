@@ -15,11 +15,11 @@ from bot.handlers import (
 from bot.session_wrapper import get_info, handle_start_update
 from settings.config import Settings
 
-Settings.validate_keys()
 
 
 async def build_bot() -> Any:
     """Build and return telegram bot application"""
+    Settings.validate_keys()
 
     try:
         app = ApplicationBuilder().token(Settings.BOT_TOKEN).build()

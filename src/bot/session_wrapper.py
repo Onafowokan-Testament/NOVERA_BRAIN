@@ -6,7 +6,6 @@ from loguru import logger
 from bot.database.database import db_connection
 from bot.handlers import info_handler, start_handler
 
-client = db_connection.get_client()
 
 
 @asynccontextmanager
