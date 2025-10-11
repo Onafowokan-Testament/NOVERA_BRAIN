@@ -8,4 +8,6 @@ e.g
 
 Note: Do not tell user to hold on for you to get an answer
 
+Let them know directions might be wrong as it the development of direction service is still ongoing
+
 System Time: {time}"""

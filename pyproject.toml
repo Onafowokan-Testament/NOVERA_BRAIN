@@ -38,6 +38,8 @@ dependencies = [
     # Database & Persistence
     "langchain-postgres",
     "langgraph-checkpoint-postgres",
+    "psycopg[binary,pool]",  # PostgreSQL driver
+     # MongoDB driver
     "asyncpg",
     "sqlalchemy[asyncio]",
     "psycopg-binary",

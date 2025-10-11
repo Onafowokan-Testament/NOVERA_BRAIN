@@ -5,5 +5,26 @@
   },
   "env": ".env",
   "python_version": "3.13",
-  "image_distro": "wolfi"
+  "image_distro": "wolfi",
+
+  "checkpointer": {
+        "ttl": {
+            "strategy": "delete",
+            "sweep_interval_minutes": 5,
+            "default_ttl": 43200
+        }
+    },
+    "store": {
+        "index": {
+            "embed": "openai:text-embedding-3-small",
+            "dims": 1536,
+            "fields": ["$"]
+        },
+        "ttl": {
+            "refresh_on_read": true,
+            "sweep_interval_minutes": 120,
+            "default_ttl": 10080
+        }
+    }
+
 }
