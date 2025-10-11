@@ -39,8 +39,7 @@ class Settings:
     MONGODB_URL = config("MONGODB_URL")
     DATABASE_NAME = "novera"
 
-    #POSTGRES
-    GRAPH_POSTGRES_STORE = config("GRAPH_POSTGRES_STORE")
+    # POSTGRES
 
     if LANGSMITH_TRACING:
         os.environ["LANGCHAIN_TRACING_V2"] = "true"
@@ -59,7 +58,6 @@ class Settings:
             "OPENAI_API_KEY",
             "QDRANT_ENDPOINT",
             "QDRANT_API_KEY",
-            "GRAPH_POSTGRES_STORE"
         ]
         missing_secret = [var for var in required_vars if not config(var, default=None)]
 
