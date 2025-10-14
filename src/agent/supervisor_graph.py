@@ -9,15 +9,16 @@ from langgraph.store.memory import InMemoryStore
 from langgraph.types import Command
 from langgraph.utils.config import get_store
 from langgraph_supervisor import create_supervisor
-from settings.logger_config import logger
 
 from agent.configuration import NoveraConfig
 from agent.direction_agent.src.memory_agent import graph as direction_graph
 from agent.meta_state import OrchestrationState
 from agent.prompt import SYSTEM_PROMPT
 from agent.qa_agent.src.retrieval_graph import graph as qa_graph
+from agent.timetable_agent.src.memory_agent import graph as timetable_graph
 from agent.tools import TOOLS, store_user_profile
 from agent.utils import load_chat_model
+from settings.logger_config import logger
 
 supervisor_name = "NOVERA_SUPERVISOR"
 supervisor_agent_name = "NOVERA_AGENT_ORCHESTRATOR"
@@ -27,7 +28,7 @@ store = InMemoryStore()
 
 
 async def query_preprocessor_hook(
-    state: OrchestrationState,  
+    state: OrchestrationState,
 ) -> Union[Dict[str, List[BaseMessage]], Command]:
     if not state.get("messages") or state["messages"] is None:
         logger.error("No message in state")
@@ -158,6 +159,7 @@ def instantiate_novera_orchestrator():
     agents = [
         qa_graph.initiate_qa_agent(),
         direction_graph.initiate_direction_agent(),
+        timetable_graph.initiate_timetable_agent(),
     ]
 
     model = load_chat_model(NoveraConfig.model)

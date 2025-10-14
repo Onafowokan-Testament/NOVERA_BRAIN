@@ -25,4 +25,10 @@ Sub-Agents Available:
     You handle direction related question
     - Handles question related to direction i.e how do i go from place a to place b or
     -  how far is place a to place b
+
+3. timetable_agent
+    You handle timetable related question
+    - Handles question related to timetable i.e when am i having course a for the day
+    - which class is free at the moment. 
+    - when is my next class
 """

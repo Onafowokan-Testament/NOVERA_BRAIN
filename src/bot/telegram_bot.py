@@ -1,20 +1,20 @@
 from typing import Any
 
-from settings.logger_config import logger
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
 
 from bot.handlers import (
     about_handler,
     add_location_handler,
+    broadcast_message,
     commands_handler,
     contact_handler,
-    health_handler,  
+    health_handler,
     help_handler,
     message_handler,
 )
 from bot.session_wrapper import get_info, handle_start_update
 from settings.config import Settings
-
+from settings.logger_config import logger
 
 
 async def build_bot() -> Any:
@@ -26,6 +26,8 @@ async def build_bot() -> Any:
         app.add_handler(CommandHandler("help", help_handler))
         app.add_handler(CommandHandler("about", about_handler))
         app.add_handler(CommandHandler("commands", commands_handler))
+        app.add_handler(CommandHandler("send_broadcast_message", broadcast_message))
+
         app.add_handler(CommandHandler("contact", contact_handler))
         app.add_handler(CommandHandler("health", health_handler))
 

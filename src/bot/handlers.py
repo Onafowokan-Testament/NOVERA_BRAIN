@@ -3,16 +3,89 @@ from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage
-from settings.logger_config import logger
 from telegram import Update
 from telegram.ext import ContextTypes
 
+from agent.supervisor_graph import instantiate_novera_orchestrator
 from bot.database.models.user import AsyncUserModel
-from  agent.supervisor_graph import instantiate_novera_orchestrator
+from settings.logger_config import logger
+
 user_model = AsyncUserModel()
+
+
+from telegram.error import TelegramError
+
 load_dotenv()
 
 _agent = None
+
+
+async def broadcast_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    Broadcast a message to all registered users.
+    Only admins can use this command.
+    Usage: /broadcast <message>
+    """
+    # Check if user is admin
+    ADMIN_IDS = [1482138353]  # Replace with actual admin IDs
+    if update.effective_user.id not in ADMIN_IDS:
+        await update.message.reply_text(
+            "Sorry, this command is only available for admins."
+        )
+        return
+
+    # Get the message to broadcast
+    message_text = update.message.text.replace("/send_broadcast_message ", "")
+    if not message_text:
+        await update.message.reply_text(
+            "Please provide a message to broadcast.\nUsage: /broadcast <message>"
+        )
+        return
+
+    try:
+        users = await user_model.get_users()
+        if not users:
+            await update.message.reply_text("No users found in the database.")
+            return
+
+        logger.info(f"Found {len(users)} users to broadcast to")
+        success_count = 0
+        fail_count = 0
+
+        # Send message to each user
+        for user in users:
+            try:
+                telegram_id = user.get("telegram_id")
+                if not telegram_id:
+                    logger.error(f"User missing telegram_id: {user}")
+                    fail_count += 1
+                    continue
+
+                await context.bot.send_message(chat_id=telegram_id, text=message_text)
+                success_count += 1
+                logger.info(f"Successfully sent broadcast to user {telegram_id}")
+
+            except TelegramError as e:
+                fail_count += 1
+                logger.error(
+                    f"Failed to send broadcast to user {user.get('telegram_id', 'unknown')}: {str(e)}"
+                )
+                continue
+
+        status_message = (
+            f"Broadcast completed!\n"
+            f"📊 Total users: {len(users)}\n"
+            f"✅ Successfully sent: {success_count}\n"
+            f"❌ Failed: {fail_count}"
+        )
+        await update.message.reply_text(status_message)
+
+    except Exception as e:
+        logger.error(f"Broadcast error: {str(e)}")
+        await update.message.reply_text(
+            "An error occurred while broadcasting the message."
+        )
+
 
 def get_agent():
     """Get or create agent instance"""
@@ -20,6 +93,7 @@ def get_agent():
     if _agent is None:
         _agent = instantiate_novera_orchestrator()
     return _agent
+
 
 @asynccontextmanager
 async def typing_effect(context: ContextTypes.DEFAULT_TYPE, chat_id: int):
@@ -237,7 +311,6 @@ All systems operational! Ready to help with Covenant University questions! """
     await update.message.reply_text(message, parse_mode="Markdown")
 
 
-
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle general user messages with improved typing effect."""
 
@@ -270,7 +343,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 logger.error(f"TypeError in agent invocation: {str(te)}")
                 await update.message.reply_text(
                     "I encountered a processing error. Please try rephrasing your question! 🤔"
-                )   
+                )
                 return
             except Exception as ae:
                 logger.error(f"Agent invocation error: {str(ae)}")

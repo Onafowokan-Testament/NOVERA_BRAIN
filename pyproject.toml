@@ -48,6 +48,7 @@ dependencies = [
     # Data Processing
     "pandas",
     "requests",
+    "tabulate",
 
     # Development & Utilities
     "python-dotenv",
