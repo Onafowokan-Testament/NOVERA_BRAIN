@@ -69,28 +69,37 @@ async def talk_with_timetable(
     config: Annotated[RunnableConfig, InjectedToolArg] = None,
     store: Annotated[BaseStore, InjectedToolArg] = None,
 ) -> dict:
-    """Query the timetable data using natural language.
+    """Query and reason over the CST (College of Science and Technology) timetable using natural language
 
     This function creates an AI agent that can interpret and answer questions
     about the timetable data using natural language processing.
 
+    The timetable system works as follows
+    - Days are organized from Monday to Friday
+    - Time slots run from 8am to 8pm
+    - Course codes are formatted as three letters followed by numbers (e.g., MKT314, CHE417)
+    - Multiple courses may share the same time slot in different rooms
+    - Buildings include: CEDS, CHAPEL, CHE, CLDS/CMSS
+    - Rooms are specified as LAB, LH (Lecture Hall), or specific room numbers
+
+
+
     Args:
         query (str): Natural language question about the timetable. Examples:
-            - "What classes are scheduled for Monday?"
-            - "When is the next mathematics class?"
-            - "How many hours of physics are there this week?"
-            -Note course code do not have spaces in between them, if user writes csc 224, he means CSC224 in caps
+            - "What time is CHE417 on Monday?" (finds specific course timing)
+            - "Show me all classes in MKT LAB" (finds classes in a specific room)
+            - "What classes are in 400LH between 8am-11am?" (finds classes by room and time range)
+            - "Where is MCM131 taught?" (finds room and building for a course)
+        - Course codes must be written without spaces and in uppercase (e.g., MKT314, not MKT 314)
 
-    Returns:
-         Response containing the answer to the query and any relevant
-            timetable information.
+
 
     """
-    llm = ChatOpenAI(temperature=0.5)
+    llm = ChatOpenAI(temperature=0)
     try:
         agent_executor = create_csv_agent(
             llm,
-            "src/agent/timetable_agent/document/timetable_formatted.csv",
+            "src/agent/timetable_agent/document/td2.csv",
             verbose=True,
             agent_type="tool-calling",
             allow_dangerous_code=True,
@@ -100,8 +109,8 @@ async def talk_with_timetable(
         logger.error(f"Failed to create CSV agent: {str(e)}")
         return {"error": "We had an error processing your request."}
     answer = await agent_executor.ainvoke(query)
-   
-    return answer
+    print(answer.get("output"))
+    return answer.get("output")
 
 
 async def process_tool_call(
