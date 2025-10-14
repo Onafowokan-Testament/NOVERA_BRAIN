@@ -1,6 +1,5 @@
 from typing import Any
 
-from loguru import logger
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
 
 from bot.handlers import (
@@ -8,13 +7,13 @@ from bot.handlers import (
     add_location_handler,
     commands_handler,
     contact_handler,
+    handle_user_message,
     health_handler,
     help_handler,
-    message_handler,
 )
 from bot.session_wrapper import get_info, handle_start_update
 from settings.config import Settings
-
+from settings.logger_config import logger
 
 
 async def build_bot() -> Any:
@@ -35,7 +34,9 @@ async def build_bot() -> Any:
         # tions_handler))
         app.add_handler(CommandHandler("add_location", add_location_handler))
 
-        app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, message_handler))
+        app.add_handler(
+            MessageHandler(filters.ALL & ~filters.COMMAND, handle_user_message)
+        )
         await app.initialize()
         logger.info("Telegram bot built successfully")
         return app

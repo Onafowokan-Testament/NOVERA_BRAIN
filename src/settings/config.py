@@ -1,9 +1,11 @@
 import os
-
+from pathlib import Path
 from decouple import config
 
 
 class Settings:
+    LOG_LEVEL = "DEBUG"  # Can be overridden by environment variable
+    LOG_DIR = Path(__file__).parent.parent.parent / "logs"
     BOT_TOKEN = config("BOT_TOKEN")
     TEST_BOT_TOKEN = config("TEST_BOT_TOKEN")
 

@@ -10,7 +10,7 @@ from langchain.chat_models import init_chat_model
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph import END, StateGraph
 from langgraph.store.base import BaseStore
-from loguru import logger
+from settings.logger_config import logger
 
 from .configuration import Configuration
 from .state import State
@@ -32,7 +32,7 @@ async def call_model(state: State, config: RunnableConfig, *, store: BaseStore) 
     logger.info(f" user_id : {user_id}")
     # Retrieve the most recent memories for context
     memories = await cast(BaseStore, store).asearch(
-        ("memories", user_id),
+        ("directions", user_id, "memories"),
         query=str([m.content for m in state.messages[-3:]]),
         limit=10,
     )

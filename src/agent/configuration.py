@@ -4,7 +4,7 @@ from typing import Annotated, Optional
 
 from langchain_core.runnables import RunnableConfig
 from langgraph.config import get_config
-from loguru import logger
+from settings.logger_config import logger
 
 from agent.prompt import SYSTEM_PROMPT
 

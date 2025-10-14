@@ -3,7 +3,7 @@
 from typing import Dict, List
 
 import aiohttp
-from loguru import logger
+from settings.logger_config import logger
 
 from settings.config import Settings
 

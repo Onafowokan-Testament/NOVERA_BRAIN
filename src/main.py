@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
-from loguru import logger
+from settings.logger_config import logger   
 from telegram import Update
 
 from bot.database.database import db_connection

@@ -9,7 +9,7 @@ from langgraph.store.memory import InMemoryStore
 from langgraph.types import Command
 from langgraph.utils.config import get_store
 from langgraph_supervisor import create_supervisor
-from loguru import logger
+from settings.logger_config import logger
 
 from agent.configuration import NoveraConfig
 from agent.direction_agent.src.memory_agent import graph as direction_graph
@@ -27,7 +27,7 @@ store = InMemoryStore()
 
 
 async def query_preprocessor_hook(
-    state: OrchestrationState,
+    state: OrchestrationState,  
 ) -> Union[Dict[str, List[BaseMessage]], Command]:
     if not state.get("messages") or state["messages"] is None:
         logger.error("No message in state")
@@ -58,14 +58,17 @@ async def query_preprocessor_hook(
 
     logger.info(f"Memories extracted: {memories}")
 
+    # FIX: Handle None scores with default value
     context_content = [
         f"<li><value> {memory.value} </value> <score>{memory.score}</score> </li>"
         for memory in memories
-        if memory.score >= 0.5
+        if memory.score is not None and memory.score >= 0.5
     ]
+    print(context_content)
 
     for m in memories:
-        logger.info(f"Score: {m.score} \n\nMessage: {m.value}")
+        score_str = m.score if m.score is not None else "None"
+        logger.info(f"Score: {score_str} \n\nMessage: {m.value}")
 
     if len(context_content) == 0:
         return {"llm_inp_message": state.get("messages", [])}

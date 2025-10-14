@@ -2,7 +2,7 @@ import asyncio
 import threading
 from typing import Optional
 
-from loguru import logger
+from settings.logger_config import logger
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 

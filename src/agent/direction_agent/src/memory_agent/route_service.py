@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional
 
 import aiohttp
-from loguru import logger
+from settings.logger_config import logger
 
 from settings.config import Settings
 

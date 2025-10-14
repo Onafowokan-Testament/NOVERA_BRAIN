@@ -10,7 +10,7 @@ from langchain_community.document_loaders.parsers import PyPDFParser, RapidOCRBl
 from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
 from langchain_qdrant import QdrantVectorStore
-from loguru import logger
+from settings.logger_config import logger
 from qdrant_client import AsyncQdrantClient
 from qdrant_client.http.exceptions import UnexpectedResponse
 from qdrant_client.http.models import Distance, VectorParams

@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from typing import Any
 
-from loguru import logger
+from settings.logger_config import logger
 
 from bot.database.database import db_connection
 from bot.handlers import info_handler, start_handler

@@ -7,7 +7,7 @@ from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import InjectedToolArg
 from langchain_tavily import TavilySearch
 from langgraph.utils.config import get_store
-from loguru import logger
+from settings.logger_config import logger
 
 from .configuration import NoveraConfig
 

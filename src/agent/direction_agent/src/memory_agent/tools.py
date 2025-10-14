@@ -6,7 +6,7 @@ from typing import Annotated, Any, Callable, Dict, List, Optional
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import InjectedToolArg
 from langgraph.store.base import BaseStore
-from loguru import logger
+from settings.logger_config import logger
 
 from .configuration import Configuration
 from .models import CampusLocation
@@ -31,7 +31,7 @@ async def upsert_memory(
     that are the same. If the user corrects a memory, UPDATE it.
 
     Args:
-        content: The main content of the memory. For example:
+        content: The summarised main content of the memory in strings. For example:
             "User expressed interest in learning about French."
         context: Additional context for the memory. For example:
             "This was mentioned while discussing career options in Europe."
@@ -42,7 +42,7 @@ async def upsert_memory(
     mem_id = memory_id or uuid.uuid4()
     user_id = Configuration.from_runnable_config(config).user_id
     await store.aput(
-        ("memories", user_id, "directions"),
+        ("directions", user_id, "memories"),
         key=str(mem_id),
         value={"content": content, "context": context},
     )
@@ -70,30 +70,14 @@ async def get_directions(
     try:
 
         directions = await route_service.get_directions(start, end)
-        return {
-            "from": directions["from"],
-            "to": directions["to"],
-            "distance": f"{directions['distance']:.0f} meters",
-            "duration": f"{directions['duration'] / 60:.0f} minutes",
-            "instructions": directions["instructions"],
-        }
-    except ValueError as ve:
+        return " ".join(directions["instructions"])
+    except ValueError:
         # Handle known location errors
-        return {
-            "error": str(ve),
-            "from": start.value,
-            "to": end.value,
-            "instructions": ["Location not found. Please check available locations."],
-        }
+        return "Location not found. Please check available locations"
     except Exception as e:
         # Fallback to default directions if API fails
         logger.error(f"Error getting directions: {str(e)}")
-        return {
-            "error": f"Could not get directions: {str(e)}",
-            "from": start,
-            "to": end,
-            "instructions": ["Please refer to campus map or ask staff for directions."],
-        }
+        return "Please refer to campus map or ask staff for directions."
 
 
 async def process_tool_call(tool_call, config: RunnableConfig, *, store: BaseStore):
