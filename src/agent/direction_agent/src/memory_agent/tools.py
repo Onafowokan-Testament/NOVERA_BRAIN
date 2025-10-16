@@ -6,6 +6,7 @@ from typing import Annotated, Any, Callable, Dict, List, Optional
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import InjectedToolArg
 from langgraph.store.base import BaseStore
+
 from settings.logger_config import logger
 
 from .configuration import Configuration
@@ -96,14 +97,14 @@ async def process_tool_call(tool_call, config: RunnableConfig, *, store: BaseSto
 
     logger.info(f"Upserting for {function_name} ...")
 
-    status_msg = await upsert_memory(
+    await upsert_memory(
         content={"args": tool_call["args"], "return_value": result},
         context="Calling " + tool_call["name"],
         memory_id=None,  # or uuid.uuid4() if you want unique IDs
         config=config,
         store=store,
     )
-    return status_msg
+    return result
 
 
 TOOLS: List[Callable[..., Any]] = [get_directions]

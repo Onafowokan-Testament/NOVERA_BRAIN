@@ -7,7 +7,7 @@ import uuid
 from typing import Annotated, Any, Callable, Dict, List, Optional
 
 from langchain_core.runnables import RunnableConfig
-from langchain_core.tools import InjectedToolArg
+from langchain_core.tools import InjectedToolArg, tool
 from langchain_experimental.agents.agent_toolkits import create_csv_agent
 from langchain_openai import ChatOpenAI
 from langgraph.store.base import BaseStore
@@ -64,38 +64,21 @@ async def upsert_memory(
     return f"Stored memory {mem_id}"
 
 
+
 async def talk_with_timetable(
     query: str,
     config: Annotated[RunnableConfig, InjectedToolArg] = None,
     store: Annotated[BaseStore, InjectedToolArg] = None,
 ) -> dict:
-    """Query and reason over the CST (College of Science and Technology) timetable using natural language
+    """Query and reason over the CST timetable using natural language
 
-    This function creates an AI agent that can interpret and answer questions
-    about the timetable data using natural language processing.
-
-    The timetable system works as follows
-    - Days are organized from Monday to Friday
-    - Time slots run from 8am to 8pm
-    - Course codes are formatted as three letters followed by numbers (e.g., MKT314, CHE417)
-    - Multiple courses may share the same time slot in different rooms
-    - Buildings include: CEDS, CHAPEL, CHE, CLDS/CMSS
-    - Rooms are specified as LAB, LH (Lecture Hall), or specific room numbers
-
-
-
-    Args:
-        query (str): Natural language question about the timetable. Examples:
-            - "What time is CHE417 on Monday?" (finds specific course timing)
-            - "Show me all classes in MKT LAB" (finds classes in a specific room)
-            - "What classes are in 400LH between 8am-11am?" (finds classes by room and time range)
-            - "Where is MCM131 taught?" (finds room and building for a course)
-        - Course codes must be written without spaces and in uppercase (e.g., MKT314, not MKT 314)
+    Note, course codes do not have space, and they are in all caps e.g CSC416, CSC412 not csc412 or CSC 413
+     
 
 
 
     """
-    llm = ChatOpenAI(temperature=0)
+    llm = ChatOpenAI(temperature=0.5)
     try:
         agent_executor = create_csv_agent(
             llm,
@@ -109,30 +92,16 @@ async def talk_with_timetable(
         logger.error(f"Failed to create CSV agent: {str(e)}")
         return {"error": "We had an error processing your request."}
     answer = await agent_executor.ainvoke(query)
-    print(answer.get("output"))
-    return answer.get("output")
+    logger.info(f"Timetable query: {query}, Answer: {answer['output']}")
+   
+    return answer["output"]
 
 
-async def process_tool_call(
+
+async def process_tool_call(  
     tool_call: dict, config: RunnableConfig, *, store: BaseStore
 ) -> str:
-    """Process and execute a tool call while maintaining a memory record.
-
-    This function handles the execution of tool calls and stores the interaction
-    in the memory system for future reference.
-
-    Args:
-        tool_call (dict): Dictionary containing the tool call details including
-            name and arguments.
-        config (RunnableConfig): Configuration settings for the tool execution.
-        store (BaseStore): Storage backend for maintaining memory records.
-
-    Returns:
-        str: Status message indicating the result of the tool call processing.
-
-    Raises:
-        Exception: If tool execution fails, with detailed error information.
-    """
+    """Process and execute a tool call while maintaining a memory record."""
     print(tool_call)
 
     function_name = tool_call["name"]
@@ -147,13 +116,13 @@ async def process_tool_call(
 
     logger.info(f"Recording memory for tool call: {function_name}")
 
-    status_msg = await upsert_memory(
+    await upsert_memory(
         content={"args": tool_call["args"], "return_value": result},
         context=f"Tool execution: {tool_call['name']}",
         config=config,
         store=store,
     )
-    return status_msg
+    return result
 
 
 # Available tools and their mappings
