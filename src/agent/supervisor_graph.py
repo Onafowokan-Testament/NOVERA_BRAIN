@@ -11,11 +11,11 @@ from langgraph.utils.config import get_store
 from langgraph_supervisor import create_supervisor
 
 from agent.configuration import NoveraConfig
-from agent.direction_agent.src.memory_agent import graph as direction_graph
+from agent.direction_agent import graph as direction_graph
 from agent.meta_state import OrchestrationState
 from agent.prompt import SYSTEM_PROMPT
-from agent.qa_agent.src.retrieval_graph import graph as qa_graph
-from agent.timetable_agent.src.memory_agent import graph as timetable_graph
+from agent.qa_agent import graph as qa_graph
+from agent.timetable_agent import graph as timetable_graph
 from agent.tools import TOOLS, store_user_profile
 from agent.utils import load_chat_model
 from settings.logger_config import logger

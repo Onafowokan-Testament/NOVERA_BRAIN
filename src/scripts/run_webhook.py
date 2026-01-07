@@ -2,11 +2,11 @@ import requests
 
 from settings.config import Settings
 
-TELEGRAM_BOT_TOKEN = Settings.BOT_TOKEN
+TELEGRAM_BOT_TOKEN = Settings.TEST_BOT_TOKEN
 
 
-render_url = "https://novera-brain.onrender.com"
-local_url = "https://73f0e4d1d022.ngrok-free.app"
+render_url = "https://c4c6b04ae7fa.ngrok-free.app"
+local_url = "https://c37709579c7d.ngrok-free.app"
 url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
-response = requests.post(url, json={"url": f"{render_url}/webhook"})
+response = requests.post(url, json={"url": f"{local_url}/webhook"})
 print(response.json())

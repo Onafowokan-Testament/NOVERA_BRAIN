@@ -1,70 +1,11 @@
-import os
-from dataclasses import dataclass, field, fields
-from typing import Annotated, Optional
+"""Agent configuration - now consolidated in settings.agent_config.
 
-from langchain_core.runnables import RunnableConfig
-from langgraph.config import get_config
-from settings.logger_config import logger
+This file is kept for backward compatibility but imports from settings.
+All agent configuration is now in src/settings/agent_config.py
+"""
 
-from agent.prompt import SYSTEM_PROMPT
+# Import for backward compatibility
+from settings.agent_config import AgentConfig as NoveraConfig  # noqa: F401
 
+__all__ = ["NoveraConfig"]
 
-@dataclass
-class NoveraConfig:
-    """The configuration of the agent"""
-
-    system_prompt: str = field(
-        default=SYSTEM_PROMPT,
-        metadata={
-            "description": "system prompt used by the agent that sets the context and behaviour"
-        },
-    )
-    user_id: str = field(default="default")
-
-    model: Annotated[str, {"__template_metadata__": {"kind": "llm"}}] = field(
-        default="openai/gpt-4o-mini",
-        metadata={
-            "description": "This is the name of the language model the agent uses for interaction"
-        },
-    )
-
-    max_search_results: int = field(
-        default=10,
-        metadata={
-            "description": "The maximum number of search results to return for each search query."
-        },
-    )
-
-    @classmethod
-    def from_context(cls):
-        try:
-            config = get_config()
-        except RuntimeError:
-            config = []
-
-        configurable = config.get("configurable") or {}
-
-        logger.info(f"configurable: {configurable}")
-
-        _fields = {f.name for f in fields(cls) if f.init}
-
-        logger.info(f"_fields  {_fields}")
-
-        logger.info
-        return cls(**{k: v for k, v in configurable.items() if k in _fields})
-
-    @classmethod
-    def from_runnables(cls, config: Optional[RunnableConfig] = None):
-
-        configurable = (
-            config["configurable"] if config and "configurable" in config else {}
-        )
-
-        logger.info(f"configurable : {configurable}")
-        values = {
-            f.name: os.environ.get(f.name.upper(), configurable.get(f.name))
-            for f in fields(cls)
-            if f.init
-        }
-
-        return cls(**{k: v for k, v in values.items() if v})

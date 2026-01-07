@@ -1,58 +1,96 @@
+"""Application configuration settings.
+
+Consolidates all application-wide configuration in one place.
+Environment variables should be defined in .env file.
+"""
+
 import os
 from pathlib import Path
-from decouple import config
+from typing import Optional
+
+from decouple import config as get_env
 
 
 class Settings:
-    LOG_LEVEL = "DEBUG"  # Can be overridden by environment variable
-    LOG_DIR = Path(__file__).parent.parent.parent / "logs"
-    BOT_TOKEN = config("BOT_TOKEN")
-    TEST_BOT_TOKEN = config("TEST_BOT_TOKEN")
+    """Main application settings."""
 
-    DATABASE_URL = config("DATABASE_URL")
+    # ==================== Application ====================
+    LOG_LEVEL: str = "DEBUG"
+    LOG_DIR: Path = Path(__file__).parent.parent.parent / "logs"
+    APP_NAME: str = "NOVERA_AGENT"
+    APP_VERSION: str = "0.0.1"
 
-    POSTGRES_URL = config("POSTGRES_URL")
-    REDIS_URL = config("REDIS_URL")
-    TAVILY_API_KEY = config("TAVILY_API_KEY")
-    QDRANT_API_KEY = config("QDRANT_API_KEY")
-    QDRANT_API_ENDPOINT = config("QDRANT_ENDPOINT")
+    # ==================== Bot & Telegram ====================
+    BOT_TOKEN: str = get_env("BOT_TOKEN")
+    TEST_BOT_TOKEN: str = get_env("TEST_BOT_TOKEN")
 
-    LANGSMITH_TRACING = config("LANGSMITH_TRACING", default=True, cast=bool)
-    LANGSMITH_ENDPOINT = config(
-        "LANGSMITH_ENDPOINT", default="https://api.smith.langchain.com"
-    )
-    LANGSMITH_API_KEY = config("LANGSMITH_API_KEY")
-    LANGSMITH_PROJECT = config("LANGSMITH_PROJECT", "NOVERA")
+    # ==================== Database ====================
+    # MongoDB
+    MONGODB_URL: str = get_env("MONGODB_URL")
+    MONGODB_PASSWORD: str = get_env("MONGODB_PASSWORD")
+    MONGO_USERNAME: str = get_env("MONGO_USERNAME")
+    DATABASE_NAME: str = "novera"
+    DATABASE_URL: str = get_env("DATABASE_URL")
 
-    MODEL_NAME = config("MODEL_NAME", default="gpt-4o-mini")
-    EMBEDDING_MODEL_NAME = config(
+    # PostgreSQL
+    POSTGRES_URL: str = get_env("POSTGRES_URL")
+
+    # Cache
+    REDIS_URL: str = get_env("REDIS_URL")
+
+    # ==================== LLM & AI Services ====================
+    OPENAI_API_KEY: str = get_env("OPENAI_API_KEY")
+    MODEL_NAME: str = get_env("MODEL_NAME", default="gpt-4o-mini")
+    EMBEDDING_MODEL_NAME: str = get_env(
         "EMBEDDING_MODEL_NAME", default="text-embedding-3-small"
     )
 
-    ORS_API_KEY = config("ORS_API_KEY")
+    # ==================== External APIs ====================
+    TAVILY_API_KEY: str = get_env("TAVILY_API_KEY")
+    QDRANT_API_KEY: str = get_env("QDRANT_API_KEY")
+    QDRANT_API_ENDPOINT: str = get_env("QDRANT_ENDPOINT")
+
+    # OpenRouteService (for directions)
+    ORS_API_KEY: str = get_env("ORS_API_KEY")
     ORS_BASE_URL: str = "https://api.openrouteservice.org/v2/directions/foot-walking"
     CACHE_TIMEOUT: int = 3600
 
-    OPENAI_API_KEY = config("OPENAI_API_KEY")
+    # ==================== LangSmith (Tracing) ====================
+    LANGSMITH_TRACING: bool = get_env("LANGSMITH_TRACING", default=True, cast=bool)
+    LANGSMITH_ENDPOINT: str = get_env(
+        "LANGSMITH_ENDPOINT", default="https://api.smith.langchain.com"
+    )
+    LANGSMITH_API_KEY: str = get_env("LANGSMITH_API_KEY")
+    LANGSMITH_PROJECT: str = get_env("LANGSMITH_PROJECT", default="NOVERA")
 
-    # MONGODB
-    MONGODB_PASSWORD = config("MONGODB_PASSWORD")
-    MONGO_USERNAME = config("MONGO_USERNAME")
-    MONGODB_URL = config("MONGODB_URL")
-    DATABASE_NAME = "novera"
+    # ==================== Bot Configuration ====================
+    ADMIN_IDS: list[int] = [1482138353]  # Admin user IDs for special commands
 
-    # POSTGRES
+    def __init__(self) -> None:
+        """Initialize settings and configure environment variables."""
+        self._configure_langsmith()
+        self._configure_openai()
 
-    if LANGSMITH_TRACING:
-        os.environ["LANGCHAIN_TRACING_V2"] = "true"
-        os.environ["LANGCHAIN_ENDPOINT"] = LANGSMITH_ENDPOINT
-        os.environ["LANGCHAIN_API_KEY"] = LANGSMITH_API_KEY
-        os.environ["LANGCHAIN_PROJECT"] = LANGSMITH_PROJECT
-    if OPENAI_API_KEY:
-        os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
+    def _configure_langsmith(self) -> None:
+        """Configure LangSmith environment variables."""
+        if self.LANGSMITH_TRACING:
+            os.environ["LANGCHAIN_TRACING_V2"] = "true"
+            os.environ["LANGCHAIN_ENDPOINT"] = self.LANGSMITH_ENDPOINT
+            os.environ["LANGCHAIN_API_KEY"] = self.LANGSMITH_API_KEY
+            os.environ["LANGCHAIN_PROJECT"] = self.LANGSMITH_PROJECT
+
+    def _configure_openai(self) -> None:
+        """Configure OpenAI environment variables."""
+        if self.OPENAI_API_KEY:
+            os.environ["OPENAI_API_KEY"] = self.OPENAI_API_KEY
 
     @classmethod
-    def validate_keys(cls):
+    def validate_keys(cls) -> None:
+        """Validate that all required environment variables are set.
+
+        Raises:
+            ValueError: If any required environment variables are missing.
+        """
         required_vars = [
             "BOT_TOKEN",
             "DATABASE_URL",
@@ -61,7 +99,15 @@ class Settings:
             "QDRANT_ENDPOINT",
             "QDRANT_API_KEY",
         ]
-        missing_secret = [var for var in required_vars if not config(var, default=None)]
+        missing_secrets = [
+            var for var in required_vars if not get_env(var, default=None)
+        ]
 
-        if missing_secret:
-            raise ValueError(f"Missing required env vars {', '.join(missing_secret)}")
+        if missing_secrets:
+            raise ValueError(
+                f"Missing required environment variables: {', '.join(missing_secrets)}"
+            )
+
+
+# Global settings instance
+settings = Settings()

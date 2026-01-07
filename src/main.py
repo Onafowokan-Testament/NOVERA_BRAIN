@@ -5,7 +5,7 @@ from settings.logger_config import logger
 from telegram import Update
 
 from bot.database.database import db_connection
-from src.bot.telegram_bot import build_bot
+from bot.telegram_bot import build_bot
 
 
 class BotManager:
