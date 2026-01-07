@@ -14,7 +14,7 @@ async def start_handler(
     context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Handle /start command with proper database operations.
-    
+
     Args:
         update: Telegram update object
         context: Telegram context
@@ -22,8 +22,7 @@ async def start_handler(
     logger.info("Processing /start command")
     user = update.effective_user
     is_new, user_id = await user_service.create_user_if_new(
-        telegram_id=str(user.id), 
-        username=user.username
+        telegram_id=str(user.id), username=user.username
     )
 
     if is_new:
@@ -63,7 +62,7 @@ async def info_handler(
     context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
     """Handle /info command to display user details.
-    
+
     Args:
         update: Telegram update object
         context: Telegram context
@@ -72,7 +71,7 @@ async def info_handler(
     user = update.effective_user
 
     existing_user = await user_service.get_user(telegram_id=str(user.id))
-    
+
     if not existing_user:
         message = "You don't yet exist in our database"
     else:
@@ -86,7 +85,7 @@ Username: {existing_user.get('username', 'Not set')}"""
 
 async def help_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /help command.
-    
+
     Args:
         update: Telegram update object
         context: Telegram context
@@ -109,7 +108,7 @@ Just send a message!"""
 
 async def about_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /about command.
-    
+
     Args:
         update: Telegram update object
         context: Telegram context
@@ -136,7 +135,7 @@ Have questions? Just ask! 🎓"""
 
 async def commands_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /commands command to show available commands.
-    
+
     Args:
         update: Telegram update object
         context: Telegram context
@@ -161,7 +160,7 @@ Just type any command or ask me about Covenant University! 😊"""
 
 async def contact_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /contact command.
-    
+
     Args:
         update: Telegram update object
         context: Telegram context
@@ -180,7 +179,7 @@ Email: novera@gmail.com"""
 
 async def health_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /health command to show system status.
-    
+
     Args:
         update: Telegram update object
         context: Telegram context
@@ -203,7 +202,7 @@ async def add_location_handler(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """Handle /add_location command to add new locations.
-    
+
     Args:
         update: Telegram update object
         context: Telegram context

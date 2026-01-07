@@ -30,7 +30,9 @@ class IndexConfiguration:
         default="user1", metadata={"description": "Unique identifier for the user."}
     )
 
-    embedding_model: Annotated[str, {"__template_metadata__": {"kind": "embeddings"}}] = field(
+    embedding_model: Annotated[
+        str, {"__template_metadata__": {"kind": "embeddings"}}
+    ] = field(
         default="openai/text-embedding-3-small",
         metadata={"description": "Name of the embedding model to use."},
     )

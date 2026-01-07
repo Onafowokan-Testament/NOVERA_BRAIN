@@ -29,14 +29,12 @@ class Configuration:
 
     user_id: str = "default"
     """The ID of the user to track direction history."""
-    
+
     model: Annotated[str, {"__template_metadata__": {"kind": "llm"}}] = field(
         default="openai/gpt-4o-mini",
-        metadata={
-            "description": "The language model to use (provider/model-name)."
-        },
+        metadata={"description": "The language model to use (provider/model-name)."},
     )
-    
+
     system_prompt: str = prompts.SYSTEM_PROMPT
     """System prompt for the direction agent."""
 

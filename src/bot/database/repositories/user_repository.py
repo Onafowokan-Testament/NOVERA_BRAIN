@@ -18,7 +18,7 @@ class UserRepository(BaseRepository):
 
     async def _get_collection(self) -> Any:
         """Get the users collection.
-        
+
         Returns:
             MongoDB collection
         """
@@ -26,10 +26,10 @@ class UserRepository(BaseRepository):
 
     async def get_by_id(self, id_: str) -> Optional[dict[str, Any]]:
         """Get user by MongoDB ID.
-        
+
         Args:
             id_: User MongoDB ID
-            
+
         Returns:
             User dict or None if not found
         """
@@ -42,10 +42,10 @@ class UserRepository(BaseRepository):
 
     async def get_by_telegram_id(self, telegram_id: str) -> Optional[dict[str, Any]]:
         """Get user by telegram ID.
-        
+
         Args:
             telegram_id: Telegram user ID
-            
+
         Returns:
             User dict or None if not found
         """
@@ -58,10 +58,10 @@ class UserRepository(BaseRepository):
 
     async def get_all(self, limit: int = 100) -> list[dict[str, Any]]:
         """Get all users.
-        
+
         Args:
             limit: Maximum number of users to return
-            
+
         Returns:
             List of user dicts
         """
@@ -75,10 +75,10 @@ class UserRepository(BaseRepository):
 
     async def create(self, data: dict[str, Any]) -> str:
         """Create a new user.
-        
+
         Args:
             data: User data
-            
+
         Returns:
             Created user ID
         """
@@ -93,20 +93,17 @@ class UserRepository(BaseRepository):
 
     async def update(self, id_: str, data: dict[str, Any]) -> bool:
         """Update a user.
-        
+
         Args:
             id_: User MongoDB ID
             data: Updated user data
-            
+
         Returns:
             True if updated, False otherwise
         """
         try:
             collection = await self._get_collection()
-            result = await collection.update_one(
-                {"_id": ObjectId(id_)},
-                {"$set": data}
-            )
+            result = await collection.update_one({"_id": ObjectId(id_)}, {"$set": data})
             return result.modified_count > 0
         except Exception as e:
             logger.error(f"Error updating user: {e}")
@@ -114,10 +111,10 @@ class UserRepository(BaseRepository):
 
     async def delete(self, id_: str) -> bool:
         """Delete a user.
-        
+
         Args:
             id_: User MongoDB ID
-            
+
         Returns:
             True if deleted, False otherwise
         """
@@ -131,10 +128,10 @@ class UserRepository(BaseRepository):
 
     async def exists_by_telegram_id(self, telegram_id: str) -> bool:
         """Check if user exists by telegram ID.
-        
+
         Args:
             telegram_id: Telegram user ID
-            
+
         Returns:
             True if exists, False otherwise
         """

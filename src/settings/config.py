@@ -6,7 +6,6 @@ Environment variables should be defined in .env file.
 
 import os
 from pathlib import Path
-from typing import Optional
 
 from decouple import config as get_env
 

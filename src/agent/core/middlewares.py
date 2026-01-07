@@ -4,11 +4,7 @@ AWADOC pattern middleware for memory loading, context enrichment, and
 response post-processing across all agents.
 """
 
-from typing import Any, Callable, Dict, Optional
-
 from langchain.agents.middleware import before_agent
-from langchain.messages import RemoveMessage
-from langchain.tools import ToolRuntime
 from langgraph.runtime import Runtime
 from loguru import logger
 
@@ -30,16 +26,16 @@ def get_memory_middleware(namespace: MemoryNamespace, agent_name: str):
     @before_agent
     async def load_user_memory(state: State, runtime: Runtime[Context]) -> dict:
         """Retrieve memories and enrich context without invoking the model.
-        
+
         Args:
             state: Current agent state
             runtime: Runtime context with user info and store
-            
+
         Returns:
             Dict with memory context to inject into state
         """
         logger.info(f"[{agent_name}] Loading memory context")
-        
+
         try:
             user_id = runtime.context.user_id
             store = runtime.store
@@ -49,9 +45,7 @@ def get_memory_middleware(namespace: MemoryNamespace, agent_name: str):
             query = ""
             if messages:
                 # Get last 3 messages for context
-                recent_messages = (
-                    messages[-3:] if len(messages) >= 3 else messages
-                )
+                recent_messages = messages[-3:] if len(messages) >= 3 else messages
                 query = str(
                     [
                         (
@@ -95,6 +89,7 @@ def get_memory_middleware(namespace: MemoryNamespace, agent_name: str):
         except Exception as e:
             logger.error(f"[{agent_name}] Error loading memories: {e}")
             import traceback
+
             logger.error(traceback.format_exc())
             return {}
 
@@ -104,4 +99,3 @@ def get_memory_middleware(namespace: MemoryNamespace, agent_name: str):
 __all__ = [
     "get_memory_middleware",
 ]
-

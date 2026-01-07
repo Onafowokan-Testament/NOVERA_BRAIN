@@ -17,7 +17,7 @@ class AgentService:
 
     def get_agent(self) -> Any:
         """Get or create agent instance.
-        
+
         Returns:
             The orchestrator agent instance
         """
@@ -30,37 +30,36 @@ class AgentService:
         self, message: str, telegram_id: str, config: dict[str, Any] = None
     ) -> dict[str, Any]:
         """Process a message through the agent.
-        
+
         Args:
             message: User message
             telegram_id: Telegram user ID for thread identification
             config: Optional additional config (defaults to using telegram_id for both thread and user)
-            
+
         Returns:
             Agent result dict
-            
+
         Raises:
             Exception: If agent processing fails
         """
         try:
             input_data = {"messages": [HumanMessage(content=message)]}
-            
+
             if config is None:
                 config = {
-                    "configurable": {
-                        "thread_id": telegram_id,
-                        "user_id": telegram_id
-                    }
+                    "configurable": {"thread_id": telegram_id, "user_id": telegram_id}
                 }
-            
-            logger.info(f"Processing message for user {telegram_id} with config: {config}")
-            
+
+            logger.info(
+                f"Processing message for user {telegram_id} with config: {config}"
+            )
+
             agent = self.get_agent()
             result = await agent.ainvoke(input_data, config=config)
-            
+
             logger.info(f"Agent result type: {type(result)}")
             return result
-            
+
         except TypeError as te:
             logger.error(f"TypeError in agent invocation: {str(te)}")
             raise
@@ -70,20 +69,20 @@ class AgentService:
 
     def extract_response_content(self, result: dict[str, Any]) -> str:
         """Extract response content from agent result.
-        
+
         Args:
             result: Agent result dict
-            
+
         Returns:
             Response content string
-            
+
         Raises:
             ValueError: If response cannot be extracted
         """
         try:
             if not result:
                 raise ValueError("Empty result from agent")
-            
+
             if isinstance(result, dict) and "messages" in result:
                 messages = result.get("messages", [])
                 if messages and hasattr(messages[-1], "content"):
@@ -93,7 +92,7 @@ class AgentService:
                     raise ValueError("No content in response messages")
             else:
                 return str(result)
-                
+
         except Exception as e:
             logger.error(f"Error extracting response: {str(e)}")
             raise

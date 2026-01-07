@@ -8,16 +8,15 @@ import sqlite3
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional
+from typing import Optional
 
+from langchain.tools import ToolRuntime, tool
 from langchain_community.agent_toolkits import create_sql_agent
 from langchain_community.utilities import SQLDatabase
-from langchain.tools import ToolRuntime, tool
 from langchain_openai import ChatOpenAI
 
 from agent.core.context import Context
 from settings.logger_config import logger
-from .schema import Configuration
 
 
 @tool
@@ -38,10 +37,10 @@ async def save_timetable_memory(
     """
     if not runtime or not runtime.store:
         return "No store available for memory saving"
-        
+
     mem_id = memory_id or str(uuid.uuid4())
     user_id = runtime.context.user_id
-    
+
     await runtime.store.aput(
         (user_id, "timetable", mem_id),
         value={"content": content, "timestamp": datetime.now().isoformat()},
@@ -56,7 +55,7 @@ async def talk_with_timetable(
     runtime: ToolRuntime[Context] = None,
 ) -> str:
     """Query the timetable database for course schedules and room availability.
-    
+
     The timetable database contains a table with these columns:
     - day: Day of the week (MONDAY, TUESDAY, etc.)
     - building: Building name (CEDS, CHAPEL, CHE, CLDS/CMS)
@@ -130,7 +129,7 @@ Columns:
         if not db_path.exists():
             logger.error(f"Timetable database not found: {db_path}")
             return "Timetable database is currently unavailable."
-            
+
         try:
             with sqlite3.connect(db_path) as conn:
                 cur = conn.execute(

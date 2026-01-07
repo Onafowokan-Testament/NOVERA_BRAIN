@@ -13,7 +13,7 @@ class BroadcastResult:
 
     def __init__(self, total: int, success: int, failed: int) -> None:
         """Initialize broadcast result.
-        
+
         Args:
             total: Total users
             success: Successfully sent count
@@ -25,7 +25,7 @@ class BroadcastResult:
 
     def to_message(self) -> str:
         """Convert result to user-friendly message.
-        
+
         Returns:
             Formatted message string
         """
@@ -44,22 +44,24 @@ class BroadcastService:
         """Initialize broadcast service."""
         self.user_repository = UserRepository()
 
-    async def broadcast_message(self, message: str, bot_send_func: Any) -> BroadcastResult:
+    async def broadcast_message(
+        self, message: str, bot_send_func: Any
+    ) -> BroadcastResult:
         """Broadcast a message to all users.
-        
+
         Args:
             message: Message to broadcast
             bot_send_func: Async function to send message (receives chat_id and text)
-            
+
         Returns:
             BroadcastResult with statistics
-            
+
         Raises:
             Exception: If broadcast operation fails critically
         """
         try:
             users = await self.user_repository.get_all()
-            
+
             if not users:
                 logger.warning("No users found for broadcast")
                 return BroadcastResult(total=0, success=0, failed=0)
@@ -88,7 +90,9 @@ class BroadcastService:
                     )
                     continue
 
-            return BroadcastResult(total=len(users), success=success_count, failed=fail_count)
+            return BroadcastResult(
+                total=len(users), success=success_count, failed=fail_count
+            )
 
         except Exception as e:
             logger.error(f"Broadcast error: {str(e)}")

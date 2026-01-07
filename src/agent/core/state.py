@@ -10,7 +10,7 @@ from langgraph.prebuilt.chat_agent_executor import AgentState
 
 class MemoryNamespace(str, Enum):
     """Memory namespaces for agent isolation.
-    
+
     Each agent has an isolated memory namespace in PostgreSQL.
     Allows semantic search within each agent's context.
     """
@@ -24,7 +24,7 @@ class MemoryNamespace(str, Enum):
 
 class State(AgentState):
     """Main conversation state for agents.
-    
+
     Inherits from LangGraph's AgentState which includes:
     - messages: Annotated list with add_messages reducer (deduplication)
     """

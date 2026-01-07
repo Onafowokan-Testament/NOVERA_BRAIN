@@ -1,11 +1,11 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
-from settings.logger_config import logger   
 from telegram import Update
 
 from bot.database.database import db_connection
 from bot.telegram_bot import build_bot
+from settings.logger_config import logger
 
 
 class BotManager:

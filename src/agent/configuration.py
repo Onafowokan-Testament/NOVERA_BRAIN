@@ -8,4 +8,3 @@ All agent configuration is now in src/settings/agent_config.py
 from settings.agent_config import AgentConfig as NoveraConfig  # noqa: F401
 
 __all__ = ["NoveraConfig"]
-

@@ -5,7 +5,7 @@ multi-provider support, and stateful context management.
 """
 
 from .agent import initiate_qa_agent
-from .schema import Configuration, State, InputState, IndexState
+from .schema import Configuration, IndexState, InputState, State
 
 __all__ = [
     "initiate_qa_agent",

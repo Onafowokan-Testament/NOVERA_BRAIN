@@ -13,7 +13,7 @@ agent_service = AgentService()
 
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle general user messages with agent processing.
-    
+
     Args:
         update: Telegram update object
         context: Telegram context
@@ -31,8 +31,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         async with typing_effect(context, chat_id):
             try:
                 result = await agent_service.process_message(
-                    message=user_message,
-                    telegram_id=telegram_id
+                    message=user_message, telegram_id=telegram_id
                 )
                 logger.info(f"Agent result received: {type(result)}")
             except TypeError as te:

@@ -10,6 +10,7 @@ from langchain.tools import ToolRuntime, tool
 from langchain_tavily import TavilySearch
 
 from agent.core.context import Context
+
 from .schema import Configuration
 
 
@@ -19,15 +20,15 @@ async def web_search_tool(
     runtime: ToolRuntime[Context],
 ) -> str:
     """Executes comprehensive internet queries through the Tavily search platform.
-    
+
     This tool specializes in delivering reliable, up-to-date information and
     excels when addressing inquiries related to recent developments and current
     affairs. Use when retrieved documents are sketchy or need current information.
-    
+
     Args:
         query: The search query to execute
         runtime: Tool runtime with access to user context and store
-        
+
     Returns:
         Search results formatted as a string
     """
@@ -48,12 +49,12 @@ async def save_qa_memory(
     runtime: ToolRuntime[Context],
 ) -> str:
     """Save a question-answer pair to memory for future reference.
-    
+
     Args:
         query: The question asked
         answer: The answer provided
         runtime: Tool runtime with access to user context and store
-        
+
     Returns:
         Confirmation message
     """
@@ -61,7 +62,7 @@ async def save_qa_memory(
         user_id = runtime.context.user_id
         namespace = "qa"
         memory_key = (user_id, namespace, "qa_memory")
-        
+
         memory_value = f"Q: {query}\nA: {answer}"
         await runtime.store.aput(
             memory_key,

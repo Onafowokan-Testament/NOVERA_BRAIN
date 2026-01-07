@@ -10,13 +10,15 @@ from settings.logger_config import logger
 
 
 @asynccontextmanager
-async def typing_effect(context: ContextTypes.DEFAULT_TYPE, chat_id: int) -> AsyncGenerator[None, None]:
+async def typing_effect(
+    context: ContextTypes.DEFAULT_TYPE, chat_id: int
+) -> AsyncGenerator[None, None]:
     """Context manager to show continuous typing effect during processing.
-    
+
     Args:
         context: Telegram context
         chat_id: Chat ID to show typing action in
-        
+
     Yields:
         None
     """

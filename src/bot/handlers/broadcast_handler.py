@@ -12,17 +12,17 @@ broadcast_service = BroadcastService()
 
 async def broadcast_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Broadcast a message to all registered users (admin only).
-    
+
     Args:
         update: Telegram update object
         context: Telegram context
-        
+
     Note:
         Only users with admin IDs can use this command.
     """
     # Check if user is admin
-    admin_ids = getattr(Settings, 'ADMIN_IDS', [])
-    
+    admin_ids = getattr(Settings, "ADMIN_IDS", [])
+
     if update.effective_user.id not in admin_ids:
         await update.message.reply_text(
             "Sorry, this command is only available for admins."
@@ -40,10 +40,9 @@ async def broadcast_message(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     try:
         # Use service to broadcast
         result = await broadcast_service.broadcast_message(
-            message=message_text,
-            bot_send_func=context.bot.send_message
+            message=message_text, bot_send_func=context.bot.send_message
         )
-        
+
         await update.message.reply_text(result.to_message())
 
     except Exception as e:

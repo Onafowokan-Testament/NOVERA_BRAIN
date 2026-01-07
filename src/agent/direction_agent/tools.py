@@ -5,7 +5,7 @@ location management, and memory saving using AWADOC pattern.
 """
 
 from datetime import datetime
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, List
 from uuid import uuid4
 
 from langchain.tools import ToolRuntime, tool
@@ -13,6 +13,7 @@ from loguru import logger
 
 from agent.core.context import Context
 from agent.core.state import MemoryNamespace
+
 from .schema import CampusLocation
 from .services import RouteService
 
@@ -41,15 +42,17 @@ async def get_directions(
         Walking directions as formatted string
     """
     logger.info(f"[Directions] Getting route from {start} to {end}")
-    
+
     try:
         directions = await route_service.get_directions(start, end)
         result = " ".join(directions["instructions"])
-        logger.debug(f"[Directions] Successfully retrieved directions")
+        logger.debug("[Directions] Successfully retrieved directions")
         return result
     except ValueError as e:
         logger.warning(f"[Directions] Location not found: {e}")
-        return "Location not found. Please check available locations with /get_locations"
+        return (
+            "Location not found. Please check available locations with /get_locations"
+        )
     except Exception as e:
         logger.error(f"[Directions] Error getting directions: {e}")
         return "Please refer to campus map or ask staff for directions."
@@ -63,7 +66,7 @@ async def list_locations(runtime: ToolRuntime[Context]) -> str:
         Formatted list of campus locations
     """
     logger.info("[Directions] Listing all campus locations")
-    
+
     try:
         locations = route_service.list_available_locations()
         formatted = "\n".join(f"- {loc}" for loc in locations)
@@ -88,12 +91,12 @@ async def get_location_info(
         Location information including coordinates
     """
     logger.info(f"[Directions] Getting info for location: {location}")
-    
+
     try:
         info = route_service.get_location_info(location)
         if not info:
             return f"Location '{location}' not found"
-        
+
         return (
             f"📍 {info['name']}\n"
             f"Longitude: {info['longitude']}\n"
@@ -157,9 +160,7 @@ def create_direction_memory_tool(namespace: str, agent_name: str):
                 value=memory_data,
             )
 
-            logger.info(
-                f"[{agent_name}] Saved memory {mem_id} for user {user_id}"
-            )
+            logger.info(f"[{agent_name}] Saved memory {mem_id} for user {user_id}")
             return f"✓ Saved {agent_name} memory: {content}"
 
         except Exception as e:
@@ -192,4 +193,3 @@ __all__ = [
     "get_location_info",
     "save_direction_memory",
 ]
-
