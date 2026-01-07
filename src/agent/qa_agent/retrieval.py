@@ -1,9 +1,7 @@
-"""Manage the configuration of various retrievers.
+"""Manage retriever configuration for various backends.
 
-This module provides functionality to create and manage retrievers for different
-vector store backends, specifically Elasticsearch, Pinecone, and MongoDB.
-
-The retrievers support filtering results by user_id to ensure data isolation between users.
+Functionality for creating and managing retrievers for different vector store
+backends (Elasticsearch, Pinecone, MongoDB) with user_id filtering for data isolation.
 """
 
 from contextlib import asynccontextmanager
@@ -15,7 +13,7 @@ from langchain_core.vectorstores import VectorStoreRetriever
 
 from scripts.rag_store import RAGStore
 
-from .configuration import IndexConfiguration
+from .schema import IndexConfiguration
 
 ## Encoder constructors
 

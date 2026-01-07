@@ -1,9 +1,17 @@
+"""Direction Agent - Services and Utilities.
+
+Consolidated service classes and utility functions for the direction agent.
+"""
+
 from typing import Dict, List, Optional
 
 import aiohttp
+from settings.config import Settings
 from settings.logger_config import logger
 
-from settings.config import Settings
+# ============================================================================
+# CAMPUS LOCATION MAPPING
+# ============================================================================
 
 CAMPUS_LOCATIONS = {
     # Academic Buildings - Format: [longitude, latitude] for ORS API
@@ -32,7 +40,36 @@ CAMPUS_LOCATIONS = {
 }
 
 
+# ============================================================================
+# UTILITY FUNCTIONS
+# ============================================================================
+
+
+def split_model_and_provider(fully_specified_name: str) -> dict:
+    """Parse model name into provider and model components.
+
+    Args:
+        fully_specified_name: Model name in format "provider/model" or just "model"
+
+    Returns:
+        Dict with "model" and "provider" keys
+    """
+    if "/" in fully_specified_name:
+        provider, model = fully_specified_name.split("/", maxsplit=1)
+    else:
+        provider = None
+        model = fully_specified_name
+    return {"model": model, "provider": provider}
+
+
+# ============================================================================
+# ROUTE SERVICE CLASS
+# ============================================================================
+
+
 class RouteService:
+    """Service for campus direction queries using OpenRouteService API."""
+
     def __init__(self):
         self.api_key = Settings.ORS_API_KEY
         self.base_url = "https://api.openrouteservice.org/geocode"
@@ -43,49 +80,59 @@ class RouteService:
         }
 
     def _normalize_location_name(self, place_name: str) -> str:
-        """Normalize and resolve aliases for location names"""
+        """Normalize location name to standard format."""
         normalized = place_name.lower().strip().replace(" ", "_")
-        logger.info(f"Normalized place name: {normalized}")
+        logger.debug(f"Normalized location: {place_name} → {normalized}")
         return normalized
 
     def get_coordinates(self, place_name: str) -> Optional[List[float]]:
-        """Get coordinates from local mapping first"""
+        """Get [longitude, latitude] coordinates for a location.
+
+        Args:
+            place_name: Name of the campus location
+
+        Returns:
+            [lon, lat] or None if not found
+        """
         normalized = self._normalize_location_name(place_name)
         coords = CAMPUS_LOCATIONS.get(normalized)
 
         if coords:
-            logger.info(f"Found local coordinates for {place_name}: {coords}")
+            logger.info(f"Found coordinates for '{place_name}': {coords}")
             return coords
 
-        logger.warning(f"No local coordinates found for {place_name}")
+        logger.warning(f"Location not found: {place_name}")
         return None
 
     async def get_directions(self, start_place: str, end_place: str) -> Dict:
-        """Get walking directions between two places
+        """Get walking directions between two campus locations.
 
         Args:
             start_place: Name of starting location
             end_place: Name of destination
 
         Returns:
-            Dict containing route information
+            Dict with route, distance, duration, instructions
+
+        Raises:
+            ValueError: If locations not found or API error
         """
-        # Get coordinates from local mapping
         try:
-            # Validate API key
             if not self.api_key:
                 raise ValueError("OpenRouteService API key not configured")
 
             start_coords = self.get_coordinates(start_place)
             if not start_coords:
                 raise ValueError(
-                    f"Unknown location: {start_place}. Use /get_locations to see available places."
+                    f"Unknown location: {start_place}. "
+                    "Use /get_locations to see available places."
                 )
 
             end_coords = self.get_coordinates(end_place)
             if not end_coords:
                 raise ValueError(
-                    f"Unknown location: {end_place}. Use list_locations() to see available places."
+                    f"Unknown location: {end_place}. "
+                    "Use /get_locations to see available places."
                 )
 
             # Check if same location
@@ -100,8 +147,6 @@ class RouteService:
                 }
 
             # Call OpenRouteService API
-            # IMPORTANT: ORS expects coordinates in [longitude, latitude] format
-            # Our CAMPUS_LOCATIONS are stored in this format
             payload = {
                 "coordinates": [start_coords, end_coords],
                 "instructions": True,
@@ -112,41 +157,35 @@ class RouteService:
             }
 
             async with aiohttp.ClientSession() as session:
-                try:
-                    async with session.post(
-                        f"{self.directions_url}/foot-walking",
-                        headers=self.headers,
-                        json=payload,
-                    ) as response:
-                        if response.status == 429:  # Rate limit
-                            raise ValueError(
-                                "API rate limit exceeded. Please try again later."
-                            )
-                        elif response.status != 200:
-                            error_text = await response.text()
-                            logger.error(f"API Error: {error_text}")
-                            raise ValueError(
-                                f"Direction service error: {response.status}"
-                            )
+                async with session.post(
+                    f"{self.directions_url}/foot-walking",
+                    headers=self.headers,
+                    json=payload,
+                ) as response:
+                    if response.status == 429:
+                        raise ValueError(
+                            "API rate limit exceeded. Please try again later."
+                        )
+                    elif response.status != 200:
+                        error_text = await response.text()
+                        logger.error(f"Direction API error: {error_text}")
+                        raise ValueError(f"Service error: {response.status}")
 
-                        route_data = await response.json()
-                        logger.info("Retrieved route data successfully")
+                    route_data = await response.json()
+                    logger.info("Retrieved route data successfully")
+                    return self._format_response(route_data, start_place, end_place)
 
-                        return self._format_response(route_data, start_place, end_place)
-
-                except aiohttp.ClientError as e:
-                    logger.error(f"Network error: {str(e)}")
-                    raise ValueError("Could not connect to direction service")
-
+        except aiohttp.ClientError as e:
+            logger.error(f"Network error: {str(e)}")
+            raise ValueError("Could not connect to direction service")
         except ValueError:
-            # Re-raise ValueError as is
             raise
         except Exception as e:
             logger.error(f"Failed to get directions: {str(e)}")
             raise ValueError(f"Failed to get directions: {str(e)}")
 
     def _format_response(self, route_data: Dict, start: str, end: str) -> Dict:
-        """Format OpenRouteService response"""
+        """Format OpenRouteService response into standard format."""
         if not route_data or "routes" not in route_data:
             raise Exception("No routes found in response")
 
@@ -163,7 +202,7 @@ class RouteService:
         }
 
     def _extract_instructions(self, segment: Dict) -> List[str]:
-        """Extract turn-by-turn instructions"""
+        """Extract turn-by-turn instructions from route segment."""
         instructions = []
 
         for step in segment.get("steps", []):
@@ -178,17 +217,23 @@ class RouteService:
         return instructions if instructions else ["Walk to destination"]
 
     def list_available_locations(self) -> List[str]:
-        """Get list of all available campus locations"""
+        """Get list of all available campus locations."""
         return sorted(CAMPUS_LOCATIONS.keys())
 
     def add_location(self, name: str, longitude: float, latitude: float):
-        """Add a new location dynamically"""
+        """Add a new location dynamically.
+
+        Args:
+            name: Location name
+            longitude: Longitude coordinate
+            latitude: Latitude coordinate
+        """
         normalized = name.lower().strip().replace(" ", "_")
         CAMPUS_LOCATIONS[normalized] = [longitude, latitude]
-        logger.info(f"Added location: {normalized} at [{longitude}, {latitude}]")
+        logger.info(f"Added location: {normalized} [{longitude}, {latitude}]")
 
     def get_location_info(self, place_name: str) -> Optional[Dict]:
-        """Get detailed info about a location"""
+        """Get detailed info about a location."""
         coords = self.get_coordinates(place_name)
         if coords:
             return {
@@ -200,5 +245,4 @@ class RouteService:
         return None
 
 
-# Initialize service
-route_service = RouteService()
+__all__ = ["RouteService", "split_model_and_provider", "CAMPUS_LOCATIONS"]

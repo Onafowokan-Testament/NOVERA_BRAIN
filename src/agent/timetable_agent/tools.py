@@ -1,4 +1,7 @@
-"""Tools module for the memory agent."""
+"""Timetable Agent - Tool Definitions.
+
+Tool definitions for timetable agent including SQL agent and memory management.
+"""
 
 import sqlite3
 import uuid
@@ -14,7 +17,7 @@ from langchain_openai import ChatOpenAI
 from langgraph.store.base import BaseStore
 from settings.logger_config import logger
 
-from .configuration import Configuration
+from .schema import Configuration
 
 
 @tool

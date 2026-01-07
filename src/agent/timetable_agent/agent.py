@@ -1,4 +1,4 @@
-"""Graphs that extract memories on a schedule."""
+"""Timetable Agent - AWADOC Pattern with Memory Management."""
 
 import asyncio
 import json
@@ -12,13 +12,14 @@ from langgraph.graph import END, StateGraph
 from langgraph.store.base import BaseStore
 from settings.logger_config import logger
 
-from .configuration import Configuration
-from .state import State
+from agent.core.state import MemoryNamespace
+from .schema import Configuration, State
 from .tools import TOOLS, process_tool_call
+from .prompts import SYSTEM_PROMPT
 
 # Initialize the language model to be used for memory extraction
 llm = init_chat_model(model="gpt-4o-mini", model_provider="openai")
-AGENT_NAME: str = config("DIRECTION_AGENT_NAME", default="direction_agent")
+AGENT_NAME: str = config("TIMETABLE_AGENT_NAME", default="timetable_agent")
 
 
 async def call_model(state: State, config: RunnableConfig, *, store: BaseStore) -> dict:
@@ -32,7 +33,7 @@ async def call_model(state: State, config: RunnableConfig, *, store: BaseStore) 
     logger.info(f" user_id : {user_id}")
     # Retrieve the most recent memories for context
     memories = await cast(BaseStore, store).asearch(
-        ("directions", user_id, "memories"),
+        ("timetable", user_id, "memories"),
         query=str([m.content for m in state.messages[-3:]]),
         limit=10,
     )
@@ -107,7 +108,7 @@ def route_message(state: State):
     return END
 
 
-def initiate_direction_agent(agent_name=None):
+def initiate_timetable_agent(agent_name=None):
     # Create the graph + all nodes
 
     if agent_name is None:

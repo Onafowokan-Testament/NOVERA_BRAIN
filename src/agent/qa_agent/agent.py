@@ -1,9 +1,7 @@
-"""Main entrypoint for the conversational retrieval graph.
+"""QA Agent - Conversational retrieval with document search.
 
-This module defines the core structure and functionality of the conversational
-retrieval graph. It includes the main graph definition, state management,
-and key functions for processing user inputs, generating queries, retrieving
-relevant documents, and formulating responses.
+Main graph definition for QA agent including state management,
+query generation, document retrieval, and response generation.
 """
 
 from datetime import datetime, timezone
@@ -19,8 +17,7 @@ from langgraph.store.memory import InMemoryStore
 from pydantic import BaseModel
 
 from . import retrieval
-from .configuration import Configuration
-from .state import InputState, State
+from .schema import Configuration, InputState, State
 from .utils import format_docs, get_message_text, load_chat_model
 
 # Define the function that calls the model

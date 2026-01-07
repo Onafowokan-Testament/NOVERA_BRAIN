@@ -1,4 +1,8 @@
-"""Define he agent's tools."""
+"""Direction Agent - Tool Definitions.
+
+Tool definitions for the direction agent including memory management,
+route retrieval, and location management.
+"""
 
 import uuid
 from typing import Annotated, Any, Callable, Dict, List, Optional
@@ -9,9 +13,8 @@ from langgraph.store.base import BaseStore
 
 from settings.logger_config import logger
 
-from .configuration import Configuration
-from .models import CampusLocation
-from .route_service import RouteService
+from .schema import Configuration, CampusLocation
+from .services import RouteService
 
 route_service = RouteService()
 

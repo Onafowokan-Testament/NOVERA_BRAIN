@@ -1,4 +1,4 @@
-"""This "graph" simply exposes an endpoint for a user to upload docs to be indexed."""
+"""Document indexing graph - endpoint for uploading docs to be indexed."""
 
 from typing import Optional, Sequence
 
@@ -6,9 +6,8 @@ from langchain_core.documents import Document
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph import StateGraph
 
-from .configuration import IndexConfiguration
-from .graph import retrieval
-from .state import IndexState
+from .schema import IndexConfiguration, IndexState
+from .agent import retrieval
 
 
 def ensure_docs_have_user_id(

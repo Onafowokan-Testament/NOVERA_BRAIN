@@ -1,8 +1,13 @@
+"""QA Agent - Tool Definitions.
+
+Tool definitions for QA agent including web search capabilities.
+"""
+
 from typing import Any, Callable, List, cast
 
 from langchain_tavily import TavilySearch
 
-from .configuration import Configuration
+from .schema import Configuration
 
 
 async def web_search_tool(query: str):

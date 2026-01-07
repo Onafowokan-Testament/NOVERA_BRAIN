@@ -1,4 +1,4 @@
-"""Graphs that extract memories on a schedule."""
+"""Direction Agent - AWADOC Pattern with Memory Management."""
 
 import asyncio
 import json
@@ -12,13 +12,14 @@ from langgraph.graph import END, StateGraph
 from langgraph.store.base import BaseStore
 from settings.logger_config import logger
 
-from .configuration import Configuration
-from .state import State
+from agent.core.state import MemoryNamespace
+from .schema import Configuration, State
 from .tools import TOOLS, process_tool_call
+from .prompts import SYSTEM_PROMPT
 
 # Initialize the language model to be used for memory extraction
 llm = init_chat_model(model="gpt-4o-mini", model_provider="openai")
-AGENT_NAME: str = config("TIMETABLE_AGENT_NAME", default="timetable_agent")
+AGENT_NAME: str = config("DIRECTION_AGENT_NAME", default="direction_agent")
 
 
 async def call_model(state: State, config: RunnableConfig, *, store: BaseStore) -> dict:
@@ -27,33 +28,30 @@ async def call_model(state: State, config: RunnableConfig, *, store: BaseStore) 
 
     user_id = configurable.user_id
     model = configurable.model
-    system_prompt = configurable.system_prompt
-    logger.info(f" System prompt: {system_prompt}")
-    logger.info(f" user_id : {user_id}")
-    # Retrieve the most recent memories for context
+    
+    logger.info(f"Direction Agent - User ID: {user_id}")
+    
+    # Retrieve the most recent memories for context using direction-specific namespace
     memories = await cast(BaseStore, store).asearch(
-        ("timetable", user_id, "memories"),
+        (MemoryNamespace.DIRECTION.value, user_id),
         query=str([m.content for m in state.messages[-3:]]),
         limit=10,
     )
 
     # Format memories for inclusion in the prompt
     formatted = "\n".join(
-        f"[{mem.key}]: {mem.value} (similarity: {mem.score})" for mem in memories
+        f"[{mem.key}]: {mem.value} (relevance: {mem.score:.2f})" for mem in memories
     )
     if formatted:
         formatted = f"""
-<memories>
+<relevant_memories>
 {formatted}
-</memories>"""
+</relevant_memories>"""
 
     # Prepare the system prompt with user memories and current time
-    # This helps the model understand the context and temporal relevance
-    sys = system_prompt.format(time=datetime.now().isoformat())
+    sys = SYSTEM_PROMPT.format(time=datetime.now().isoformat(), memories=formatted)
 
     # Invoke the language model with the prepared prompt and tools
-    # "bind_tools" gives the LLM the JSON schema for all tools in the list so it knows how
-    # to use them.
     msg = await llm.bind_tools(TOOLS).ainvoke(
         [{"role": "system", "content": sys}, *state.messages],
     )
@@ -61,30 +59,32 @@ async def call_model(state: State, config: RunnableConfig, *, store: BaseStore) 
     if hasattr(msg, "name") and msg.name is None:
         msg.name = AGENT_NAME
 
-    logger.info(f"LLM direct output: {msg}")
+    logger.info(f"Direction Agent Response: {msg.content if hasattr(msg, 'content') else msg}")
     return {"messages": [msg]}
 
 
 async def store_memory(state: State, config: RunnableConfig, *, store: BaseStore):
+    """Store direction-related memories from tool calls."""
     # Extract tool calls from the last message
     tool_calls = state.messages[-1].tool_calls
 
     for tc in tool_calls:
-        print(tc)
-    # Concurrently execute all upsert_memory calls
+        logger.debug(f"Processing tool call: {tc.get('name')}")
+    
+    # Concurrently execute all memory storage operations
     saved_memories = await asyncio.gather(
         *(
             process_tool_call(
                 tc,
                 config=config,
                 store=store,
+                namespace=MemoryNamespace.DIRECTION,
             )
             for tc in tool_calls
         )
     )
 
     # Format the results of memory storage operations
-    # This provides confirmation to the model that the actions it took were completed
     results = [
         {
             "role": "tool",
@@ -93,7 +93,7 @@ async def store_memory(state: State, config: RunnableConfig, *, store: BaseStore
         }
         for tc, mem in zip(tool_calls, saved_memories)
     ]
-    logger.info(f"Result -----   {results}")
+    logger.info(f"Stored {len(results)} direction memories")
     return {"messages": results}
 
 
@@ -107,7 +107,7 @@ def route_message(state: State):
     return END
 
 
-def initiate_timetable_agent(agent_name=None):
+def initiate_direction_agent(agent_name=None):
     # Create the graph + all nodes
 
     if agent_name is None:
