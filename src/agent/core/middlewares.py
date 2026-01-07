@@ -1,130 +1,107 @@
-"""Middleware hooks for agent memory and context management."""
+"""Middleware hooks for agent memory and context management.
 
-from typing import Any, Callable, Dict, List, Optional
+AWADOC pattern middleware for memory loading, context enrichment, and
+response post-processing across all agents.
+"""
 
-from langchain_core.messages import BaseMessage, HumanMessage
-from langgraph.store.base import BaseStore
-from settings.logger_config import logger
+from typing import Any, Callable, Dict, Optional
 
-from agent.core.state import MemoryNamespace, State
+from langchain.agents.middleware import before_agent
+from langchain.messages import RemoveMessage
+from langchain.tools import ToolRuntime
+from langgraph.runtime import Runtime
+from loguru import logger
+
 from agent.core.context import Context
+from agent.core.state import MemoryNamespace, State
 
 
-async def create_memory_loader_middleware(
-    namespace: MemoryNamespace, agent_name: str
-) -> Callable:
-    """Create middleware to load memories before agent processing.
-    
+def get_memory_middleware(namespace: MemoryNamespace, agent_name: str):
+    """Create a memory loading middleware for a specific agent namespace.
+
     Args:
-        namespace: Memory namespace for this agent
-        agent_name: Display name of agent
-        
+        namespace: Memory namespace (e.g., MemoryNamespace.DIRECTION)
+        agent_name: Display name for the agent (e.g., "Direction")
+
     Returns:
-        Async middleware function
+        Middleware function that loads memories before agent processing
     """
 
-    async def load_memories(state: State, config: Dict[str, Any], store: BaseStore) -> Dict[str, Any]:
-        """Load relevant memories from PostgreSQL.
+    @before_agent
+    async def load_user_memory(state: State, runtime: Runtime[Context]) -> dict:
+        """Retrieve memories and enrich context without invoking the model.
         
         Args:
             state: Current agent state
-            config: LangGraph config with user info
-            store: PostgreSQL store for semantic search
+            runtime: Runtime context with user info and store
             
         Returns:
-            Dict with memory context to inject
+            Dict with memory context to inject into state
         """
+        logger.info(f"[{agent_name}] Loading memory context")
+        
         try:
-            configurable = config.get("configurable", {})
-            user_id = configurable.get("user_id", "default_user")
-            
-            logger.info(f"[{agent_name}] Loading memories for user {user_id}")
+            user_id = runtime.context.user_id
+            store = runtime.store
+            messages = state.get("messages", [])
 
-            # Search for relevant memories using semantic search
+            # Build query from recent messages
+            query = ""
+            if messages:
+                # Get last 3 messages for context
+                recent_messages = (
+                    messages[-3:] if len(messages) >= 3 else messages
+                )
+                query = str(
+                    [
+                        (
+                            m.get("content", "")
+                            if isinstance(m, dict)
+                            else getattr(m, "content", "")
+                        )
+                        for m in recent_messages
+                    ]
+                )
+
+            # Retrieve recent memories from this namespace
             memories = await store.asearch(
-                key=(user_id, namespace.value),
-                query=str([m.content for m in state.messages[-3:]]),  # Last 3 messages as query
+                (user_id, namespace.value),
+                query=query,
                 limit=10,
             )
 
             if not memories:
-                logger.debug(f"[{agent_name}] No memories found")
-                return {"memory_context": ""}
+                logger.info(f"[{agent_name}] No previous memories found")
+                return {}
 
-            # Format memories for injection
-            formatted = "\n".join(
-                f"[Memory {i}]: {mem.value.get('content', '')} (similarity: {mem.score:.2f})"
-                for i, mem in enumerate(memories, 1)
+            # Format memories for inclusion in prompt
+            formatted_memories = "\n".join(
+                f"• {mem.value['content']}\n  Context: {mem.value['context']}\n  Date: {mem.value['timestamp']}"
+                for mem in memories
             )
 
+            memory_context = f"""
+<{namespace.value}_history>
+## Previous {agent_name} Interactions:
+
+{formatted_memories}
+</{namespace.value}_history>"""
+
             logger.info(f"[{agent_name}] Loaded {len(memories)} memories")
-            return {"memory_context": formatted}
+
+            # Inject memories into the message stream
+            return {"messages": [{"role": "system", "content": memory_context}]}
 
         except Exception as e:
             logger.error(f"[{agent_name}] Error loading memories: {e}")
-            return {"memory_context": ""}
+            import traceback
+            logger.error(traceback.format_exc())
+            return {}
 
-    return load_memories
-
-
-def create_memory_save_tool(namespace: MemoryNamespace, agent_name: str) -> Callable:
-    """Factory to create memory-saving tools for any namespace.
-    
-    Args:
-        namespace: Memory namespace for this agent
-        agent_name: Display name of agent
-        
-    Returns:
-        Async tool function
-    """
-
-    async def save_memory(
-        content: str,
-        context: str,
-        user_id: str,
-        store: BaseStore,
-    ) -> str:
-        """Save information to user's persistent memory.
-
-        Args:
-            content: What to save (e.g., "User asked about campus directions")
-            context: When/why/details (e.g., "Location query at 2025-01-07")
-            user_id: User ID for memory scoping
-            store: PostgreSQL store
-
-        Returns:
-            Confirmation message
-        """
-        try:
-            from datetime import datetime
-            from uuid import uuid4
-
-            mem_id = str(uuid4())
-            memory_data = {
-                "content": content,
-                "context": context,
-                "timestamp": datetime.now().isoformat(),
-                "memory_id": mem_id,
-                "agent": agent_name,
-            }
-
-            await store.aput(
-                key=(user_id, namespace.value),
-                key_suffix=mem_id,  # Unique ID within namespace
-                value=memory_data,
-            )
-
-            logger.info(f"[{agent_name}] Saved memory: {content[:50]}...")
-            return f"✓ Saved {agent_name} memory"
-
-        except Exception as e:
-            logger.error(f"[{agent_name}] Error saving memory: {e}")
-            return f"Failed to save memory: {str(e)}"
-
-    return save_memory
+    return load_user_memory
 
 
 __all__ = [
-    "create_memory_loader_middleware",
-    "create_memory_save_tool",
+    "get_memory_middleware",
 ]
+

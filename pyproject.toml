@@ -13,17 +13,19 @@ dependencies = [
 
     # LangChain & LangGraph Core
     "langchain","aiohttp",
-    "langchain-core",
-    "langchain-community",
-    "langchain_experimental",
+
     "langgraph",
-    "langgraph-supervisor",
+     "langchain",
+    "langchain-core",
+    "python-multipart",
+    "langchain-community",
+    "langgraph",
+    "langgraph-checkpoint-postgres",
+    "langgraph-checkpoint-redis",
+    "langchain_openai",
 
-    # LLM Integrations
-    "langchain-openai",
-    "langchain-google-genai",
-    "openai",
 
+  
     # Vector Stores & Search
     "langchain-qdrant",
     "qdrant-client",
@@ -37,7 +39,6 @@ dependencies = [
 
     # Database & Persistence
     "langchain-postgres",
-    "langgraph-checkpoint-postgres",
     "psycopg[binary,pool]",  # PostgreSQL driver
      # MongoDB driver
     "asyncpg",
