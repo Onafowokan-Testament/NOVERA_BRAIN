@@ -4,7 +4,7 @@ from typing import Any
 
 from telegram.error import TelegramError
 
-from bot.database.models.user import AsyncUserModel
+from bot.database.repositories import UserRepository
 from settings.logger_config import logger
 
 
@@ -42,7 +42,7 @@ class BroadcastService:
 
     def __init__(self) -> None:
         """Initialize broadcast service."""
-        self.user_model = AsyncUserModel()
+        self.user_repository = UserRepository()
 
     async def broadcast_message(self, message: str, bot_send_func: Any) -> BroadcastResult:
         """Broadcast a message to all users.
@@ -58,7 +58,7 @@ class BroadcastService:
             Exception: If broadcast operation fails critically
         """
         try:
-            users = await self.user_model.get_users()
+            users = await self.user_repository.get_all()
             
             if not users:
                 logger.warning("No users found for broadcast")

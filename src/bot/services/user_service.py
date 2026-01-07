@@ -2,7 +2,7 @@
 
 from typing import Any, Optional
 
-from bot.database.models.user import AsyncUserModel
+from bot.database.repositories import UserRepository
 from settings.logger_config import logger
 
 
@@ -11,7 +11,7 @@ class UserService:
 
     def __init__(self) -> None:
         """Initialize user service."""
-        self.user_model = AsyncUserModel()
+        self.user_repository = UserRepository()
 
     async def create_user_if_new(self, telegram_id: str, username: Optional[str] = None) -> tuple[bool, str]:
         """Create user if not exists.
@@ -24,13 +24,13 @@ class UserService:
             Tuple of (is_new: bool, user_id: str)
         """
         try:
-            existing_user = await self.user_model.get_user(telegram_id=telegram_id)
+            existing_user = await self.user_repository.get_by_telegram_id(telegram_id)
             
             if existing_user:
                 logger.info(f"User {telegram_id} already exists")
                 return False, str(existing_user.get("_id", telegram_id))
             
-            new_user_id = await self.user_model.create_user(
+            new_user_id = await self.user_repository.create(
                 {"telegram_id": telegram_id, "username": username}
             )
             logger.info(f"User {telegram_id} created with id: {new_user_id}")
@@ -50,7 +50,7 @@ class UserService:
             User dict or None if not found
         """
         try:
-            return await self.user_model.get_user(telegram_id=telegram_id)
+            return await self.user_repository.get_by_telegram_id(telegram_id)
         except Exception as e:
             logger.error(f"Error getting user: {e}")
             raise
@@ -65,7 +65,7 @@ class UserService:
             List of user dicts
         """
         try:
-            return await self.user_model.get_users(limit=limit)
+            return await self.user_repository.get_all(limit=limit)
         except Exception as e:
             logger.error(f"Error getting users: {e}")
             raise
@@ -80,8 +80,7 @@ class UserService:
             True if user exists, False otherwise
         """
         try:
-            user = await self.user_model.get_user(telegram_id=telegram_id)
-            return user is not None
+            return await self.user_repository.exists_by_telegram_id(telegram_id)
         except Exception as e:
             logger.error(f"Error checking user existence: {e}")
             raise
