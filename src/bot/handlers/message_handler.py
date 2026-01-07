@@ -1,27 +1,14 @@
 """Message handler for processing user messages with agent."""
 
-from langchain_core.messages import HumanMessage
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from agent.supervisor_graph import instantiate_novera_orchestrator
 from bot.handlers.base_handler import typing_effect
+from bot.services import AgentService
 from settings.logger_config import logger
 
-# Global agent instance
-_agent = None
-
-
-def get_agent():
-    """Get or create agent instance.
-    
-    Returns:
-        The orchestrator agent instance
-    """
-    global _agent
-    if _agent is None:
-        _agent = instantiate_novera_orchestrator()
-    return _agent
+# Initialize service
+agent_service = AgentService()
 
 
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -41,20 +28,13 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     chat_id = update.message.chat_id
 
     try:
-        input_data = {"messages": [HumanMessage(content=user_message)]}
-
         async with typing_effect(context, chat_id):
-            agent = get_agent()
-
-            agent_config = {
-                "configurable": {"thread_id": telegram_id, "user_id": telegram_id}
-            }
-            logger.info(f"Using config: {agent_config}")
-
             try:
-                result = await agent.ainvoke(input_data, config=agent_config)
-                logger.info(f"Agent result type: {type(result)}")
-                logger.info(f"Agent result content: {result}")
+                result = await agent_service.process_message(
+                    message=user_message,
+                    telegram_id=telegram_id
+                )
+                logger.info(f"Agent result received: {type(result)}")
             except TypeError as te:
                 logger.error(f"TypeError in agent invocation: {str(te)}")
                 await update.message.reply_text(
@@ -75,22 +55,18 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             )
         else:
             try:
-                if isinstance(result, dict) and "messages" in result:
-                    messages = result.get("messages", [])
-                    if messages and hasattr(messages[-1], "content"):
-                        content = str(messages[-1].content).strip()
-                        if content:
-                            await update.message.reply_text(f"{content}.")
-                        else:
-                            await update.message.reply_text(
-                                "I received an empty response. Please try again! 🤔"
-                            )
-                    else:
-                        await update.message.reply_text(
-                            "I couldn't process the response properly. Please try again! 🤔"
-                        )
+                content = agent_service.extract_response_content(result)
+                if content:
+                    await update.message.reply_text(f"{content}.")
                 else:
-                    await update.message.reply_text(f"{result}")
+                    await update.message.reply_text(
+                        "I received an empty response. Please try again! 🤔"
+                    )
+            except ValueError as ve:
+                logger.error(f"Error extracting response: {str(ve)}")
+                await update.message.reply_text(
+                    "I had trouble processing the response. Please try again! 🤔"
+                )
             except Exception as re:
                 logger.error(f"Error processing result: {str(re)}")
                 await update.message.reply_text(

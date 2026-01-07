@@ -3,10 +3,10 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from bot.database.models.user import AsyncUserModel
+from bot.services import UserService
 from settings.logger_config import logger
 
-user_model = AsyncUserModel()
+user_service = UserService()
 
 
 async def start_handler(
@@ -21,13 +21,12 @@ async def start_handler(
     """
     logger.info("Processing /start command")
     user = update.effective_user
-    existing_user = await user_model.get_user(telegram_id=str(user.id))
+    is_new, user_id = await user_service.create_user_if_new(
+        telegram_id=str(user.id), 
+        username=user.username
+    )
 
-    if not existing_user:
-        new_user = await user_model.create_user(
-            {"telegram_id": str(user.id), "username": user.username}
-        )
-        logger.info(f"User created with id: {new_user}")
+    if is_new:
         welcome_message = f"Welcome {user.first_name}! You have been registered.\n\n"
     else:
         welcome_message = f"Welcome back {user.first_name}!\n\n"
@@ -72,7 +71,7 @@ async def info_handler(
     logger.info("Processing /info command")
     user = update.effective_user
 
-    existing_user = await user_model.get_user(telegram_id=str(user.id))
+    existing_user = await user_service.get_user(telegram_id=str(user.id))
     
     if not existing_user:
         message = "You don't yet exist in our database"
