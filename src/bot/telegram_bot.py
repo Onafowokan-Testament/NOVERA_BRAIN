@@ -10,9 +10,10 @@ from bot.handlers import (
     contact_handler,
     health_handler,
     help_handler,
+    info_handler,
     message_handler,
+    start_handler,
 )
-from bot.session_wrapper import get_info, handle_start_update
 from settings.config import Settings
 from settings.logger_config import logger
 
@@ -31,8 +32,8 @@ async def build_bot() -> Any:
         app.add_handler(CommandHandler("contact", contact_handler))
         app.add_handler(CommandHandler("health", health_handler))
 
-        app.add_handler(CommandHandler("start", handle_start_update))
-        app.add_handler(CommandHandler("info", get_info))
+        app.add_handler(CommandHandler("start", start_handler))
+        app.add_handler(CommandHandler("info", info_handler))
         # app.add_handler(CommandHandler("get_locations", get_direc
         # tions_handler))
         app.add_handler(CommandHandler("add_location", add_location_handler))
